@@ -1,3 +1,4 @@
+import 'package:baba_24/presentation/screens/dashboard/booking/modify_booking_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/section_header.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
@@ -23,6 +24,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       backgroundColor: AppColors.kWhite.withValues(alpha: .98),
       appBar: CustomAppbar(
         title: 'Select Dates',
         
@@ -113,8 +115,61 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
               ),
             ),
              Gap(30.h),
-           SectionHeader(text: 'Time Selection', onTap: (){}, textSize: 14.sp, hasMargin: false,),
-           Gap(10.h),
+           
+            SectionHeader(
+              text: 'Time Selection',
+              onTap: () {},
+              textSize: 14.sp,
+              hasMargin: false,
+            ),
+            Gap(10.h),
+            Row(
+              spacing: 20.w,
+              children: [
+                Expanded(
+                  child: TimePicker(
+                    text: 'PICK-UP',
+                    time: '10:00 AM',
+                    onTap: () {
+                      showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              timePickerTheme: TimePickerThemeData(
+                                backgroundColor: Colors.white,
+                                hourMinuteTextColor: Colors.white,
+                                dialHandColor: AppColors.kAccentPink,
+                                //dialBackgroundColor: Colors.grey.shade900,
+                                entryModeIconColor: AppColors.kAccentPink,
+                              ),
+                              colorScheme: ColorScheme.light(
+                                primary:
+                                    AppColors.kAccentPink, // main accent color
+                                onPrimary: Colors.black,
+                                surface: AppColors.kDarkerGrey.withValues(
+                                  alpha: .7,
+                                ),
+                                onSurface: Colors.white,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: TimePicker(
+                    text: 'DROP-OFF',
+                    time: '10:00 AM',
+                    onTap: () => null,
+                  ),
+                ),
+              ],
+            ),
             
           ],
         ),

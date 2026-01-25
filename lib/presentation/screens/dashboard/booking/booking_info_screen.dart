@@ -27,14 +27,30 @@ class BookingInfoScreen extends StatelessWidget {
       bottomNavigationBar: Container(
         padding: EdgeInsets.symmetric(horizontal: 15.w),
         child: SafeArea(
-          child: CustomButton(onPressed: () {
-            if(bookingController.bookingInfoIndex == 2){
-              removeAllAndPushScreen(AppRoutes.confirmation);
-            }else{
-              bookingController.onBookingInfoPageChange(bookingController.bookingInfoIndex+1);
-            }
-            
-          }, text: bookingController.bookingInfoIndex==0? 'Next' : bookingController.bookingInfoIndex==1? 'Continue' : 'Confirm Booking'
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomButton(
+                topPadding: 10,
+                onPressed: () {
+                if(bookingController.bookingInfoIndex == 2){
+                  removeAllAndPushScreen(AppRoutes.bookingAppreciation);
+                }else{
+                  bookingController.onBookingInfoPageChange(bookingController.bookingInfoIndex+1);
+                }
+                
+              }, text: bookingController.bookingInfoIndex==0? 'Next' : bookingController.bookingInfoIndex==1? 'Continue' : 'Confirm Booking'
+              ),
+              CustomButton(
+                topPadding: 20,
+              bgColor: AppColors.kWhite,
+              textColor: AppColors.kBlack,
+              borderColor: Colors.grey,
+                onPressed: () {
+                 bookingController.onBookingInfoPageChange(bookingController.bookingInfoIndex-1);
+              }, text: 'Back'
+              ),
+            ],
           ),
         ),
       ),
@@ -42,7 +58,21 @@ class BookingInfoScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Center(
-            child: SmoothPageIndicator(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 10,
+              children: List.generate(3, (index){
+                return Container(
+                  height: 3.h,
+                  width: 30.w,
+                  decoration: BoxDecoration(
+                   // color: bookingController.bookingInfoIndex=index? AppColors.kAccentPink : Colors.red
+                  ),
+                );
+              }),
+            )
+            /*
+             SmoothPageIndicator(
               controller: bookingController.pageController,
               count: 3,
               effect: WormEffect(
@@ -50,9 +80,10 @@ class BookingInfoScreen extends StatelessWidget {
                 dotHeight: 8,
               ),
             ),
+            */
           ),
           Gap(10.h),
-          CustomText(text: 'Step ${bookingController.bookingInfoIndex +1} of 3'),
+         // CustomText(text: 'Step ${bookingController.bookingInfoIndex +1} of 3'),
           Expanded(
             child: PageView(
               controller: bookingController.pageController,
@@ -198,43 +229,117 @@ class BookingCustomerDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 0.h),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
-        decoration: BoxDecoration(
-          boxShadow: [BoxShadow(blurRadius: 10, color: Colors.white)],
-          borderRadius: BorderRadius.circular(20.r),
-          color: AppColors.kWhite,
-        ),
+        // padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
+        // decoration: BoxDecoration(
+        //   boxShadow: [BoxShadow(blurRadius: 10, color: Colors.white)],
+        //   borderRadius: BorderRadius.circular(20.r),
+        //   color: AppColors.kWhite,
+        // ),
         child: Column(
+          spacing: 10.h,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              text: 'Contact Information',
+              text: 'Personal Details',
               fontWeight: FontWeight.w600,
-              fontSize: 20,
+              fontSize: 14.sp,
             ),
-            Gap(25.h),
+          
             Column(
-              spacing: 20.h,
+              spacing: 15.h,
               children: [
+                Row(
+                  spacing: 10.w,
+                  children: [
+                    Expanded(
+                      child: AppTextField(
+                        controller: TextEditingController(),
+                        label: 'First Name',
+                      ),
+                    ),
+                    Expanded(
+                      child: AppTextField(
+                        controller: TextEditingController(),
+                        label: 'Last Name',
+                      ),
+                    ),
+                  ],
+                ),
                 AppTextField(
                   controller: TextEditingController(),
-                  label: 'Country/Region',
+                  label: 'Date of birth',
                   readOnly: true,
+                  
                 ),
-                AppTextField(
-                  controller: TextEditingController(),
-                  label: 'Full Name',
-                ),
+                
+               
+              ],
+            ),
+            Gap(10.h),
+            CustomText(
+              text: 'Contact Info',
+              fontWeight: FontWeight.w600,
+              fontSize: 14.sp,
+            ),
+            
+            Column(
+              spacing: 15.h,
+              children: [
                 AppTextField(
                   controller: TextEditingController(),
                   label: 'Email Address',
                 ),
                 AppTextField(
                   controller: TextEditingController(),
-                  label: 'Phone Number',
+                  label: 'Mobile Number',
                 ),
+                
+                
+               
+              ],
+            ),
+            Gap(10.h),
+            CustomText(
+              text: 'Liscense Information',
+              fontWeight: FontWeight.w600,
+              fontSize: 14.sp,
+            ),
+            
+            Column(
+              spacing: 15.h,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(15.sp),
+                  decoration: BoxDecoration(
+                    color: AppColors.kWhite,
+                    borderRadius: BorderRadius.circular(15.r),
+                    border: Border.all(
+                      color: AppColors.kAccentPink.withValues(alpha: .2),
+                      
+                    )
+                  ),
+                  child: Row(
+                    spacing: 10.w,
+                    children: [
+                      Icon(Icons.info, color: AppColors.kAccentPink,),
+                      Flexible(child: CustomText(text: 'Please ensure the name on your liscense matches the name entered above', fontSize: 12.sp, color: AppColors.kAccentPink.withValues(alpha: .6),))
+                    ],
+                  ),
+                ),
+                AppTextField(
+                  controller: TextEditingController(),
+                  label: 'Liscense Number',
+                ),
+                AppTextField(
+                  controller: TextEditingController(),
+                  label: 'Issuing Country / State',
+                  readOnly: true,
+                ),
+                
+                
+               
               ],
             ),
           ],

@@ -3,6 +3,8 @@ import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/data/controller/auth/auth_controller.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_button.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
+import 'package:baba_24/presentation/widgets/custom_text.dart';
+import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,7 +39,13 @@ class SignInWidget extends StatelessWidget {
                 obscureText: true,
                 onToggleVisibility: () {},
                 isDarkMode: false,
+                maxLines: 1,
               ),
+              Align(
+                alignment: Alignment.topRight,
+                child: InkWell(
+                  onTap: () => pushNamed(AppRoutes.forgotPassword),
+                  child: CustomText(text: 'Forgot Password?', color: AppColors.kAccentPink,))),
           
               
               const SizedBox(height: 20),

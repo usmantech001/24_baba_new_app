@@ -1,8 +1,10 @@
 
 import 'package:baba_24/presentation/screens/dashboard/booking/bookings_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/cars/saved_cars_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/explore/explore_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/home_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/settings_screen.dart';
+import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,7 +23,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     HomeScreen(),
     ExploreScreen(),
     BookingsScreen(),
-    Container(),
+    SavedCarsScreen(),
     SettingsScreen(),
   //    ServicesScreen(),
   //   HistoryScreen(),
@@ -46,6 +48,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: CircleAvatar(
+        radius: 25.r,
+        backgroundColor: AppColors.kAccentPink,
+        child: Icon(Icons.message, color: AppColors.kWhite,),
+      ),
       bottomNavigationBar: SizedBox(
         //height: 80.h,
         child: BottomNavigationBar(
@@ -74,19 +81,19 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                   //     imgPath: 'assets/icons/active-services-icon.svg',),
                   label: 'Explore'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.book_online),
+                icon: Icon(Icons.event),
                   // icon:   svgImage(
                   //     imgPath: 'assets/icons/inactive-history-icon.svg',),
                   //          activeIcon:   svgImage(
                   //     imgPath: 'assets/icons/active-history-icon.svg',),
                   label: 'Bookings'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.message),
+                icon: Icon(Icons.favorite),
                   // icon:   svgImage(
                   //     imgPath: 'assets/icons/inactive-rewards-icon.svg',),
                   //          activeIcon:   svgImage(
                   //     imgPath: 'assets/icons/active-rewards-icon.svg',),
-                  label: 'Chats'),
+                  label: 'Favorite'),
               BottomNavigationBarItem(
                   icon: Icon(Icons.settings),
                   // svgImage(

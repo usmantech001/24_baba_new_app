@@ -7,6 +7,7 @@ class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
      this.label,
+     this.hintText,
     required this.controller,
     this.isPassword = false,
     this.obscureText = false,
@@ -14,10 +15,14 @@ class AppTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.isDarkMode = false, // Add this parameter
     this.decoration,
-    this.readOnly = false
+    this.readOnly = false,
+    this.minLines,
+    this.maxLines,
+    this.prefixIcon
   });
 
   final String? label;
+  final String? hintText;
   final TextEditingController controller;
   final bool isPassword;
   final bool obscureText;
@@ -26,6 +31,9 @@ class AppTextField extends StatelessWidget {
   final bool isDarkMode; // Add this
   final InputDecoration? decoration;
   final bool readOnly;
+  final int? minLines;
+  final int? maxLines;
+  final Widget? prefixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +60,15 @@ class AppTextField extends StatelessWidget {
           keyboardType: keyboardType,
           style: TextStyle(color: textColor),
           readOnly: readOnly,
+          cursorColor: AppColors.kAccentPink,
+          minLines: minLines,
+          maxLines: maxLines,
+          
           decoration: decoration?? InputDecoration(
+            prefixIcon: prefixIcon,
             filled: true,
             fillColor: backgroundColor,
-            
+            hintText: hintText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: borderColor, width: 1),

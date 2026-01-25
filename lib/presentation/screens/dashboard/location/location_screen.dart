@@ -4,6 +4,7 @@ import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart'
 import 'package:baba_24/presentation/screens/onboard/widgets/toggle_selector.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
+import 'package:baba_24/utils/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -81,6 +82,7 @@ class LocationListView extends StatelessWidget {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
@@ -104,6 +106,23 @@ class LocationListView extends StatelessWidget {
               ],
             ),
           ),
+          Gap(20.h),
+          CustomText(text: 'Search Shortcuts'),
+          Gap(10.h),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              spacing: 30.w,
+              children: [
+                CustomShortcut(text: 'Airport', icon: Icons.location_city),
+                CustomShortcut(text: 'City Hubs', icon: Icons.location_city),
+                CustomShortcut(text: 'Airport', icon: Icons.location_city),
+                CustomShortcut(text: 'Airport', icon: Icons.location_city),
+                CustomShortcut(text: 'Airport', icon: Icons.location_city),
+                CustomShortcut(text: 'Airport', icon: Icons.location_city),
+              ],
+            ),
+          ),
           Gap(30.h),
           SectionHeader(
             text: 'Recent Locations',
@@ -124,12 +143,61 @@ class LocationListView extends StatelessWidget {
               );
             },
             separatorBuilder: (context, index) => Gap(15.h),
-            itemCount: 3,
+            itemCount: 2,
+          ),
+          Gap(30.h),
+          SectionHeader(
+            text: 'Popular Cities',
+            textSize: 14.sp,
+            suffixTextSize: 12.sp,
+            onTap: () {},
+            hasMargin: false,
+          ),
+          Gap(20.h),
+          SizedBox(
+            height: 270.h,
+            child: Stack(
+              children: [
+                Wrap(
+                  spacing: 10.w,
+                  runSpacing: 10.h,
+                  children: [
+                    PopularCityItem(name: 'New York'),
+                    PopularCityItem(name: 'New York'),
+                    PopularCityItem(name: 'New York'),
+                    PopularCityItem(name: 'New York'),
+                  ],
+                ),
+                Positioned(
+                  bottom: 25.h,
+                  left: 0,
+                  right: 0,
+                  //alignment: Alignment.bottomCenter,
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.kAccentPink,
+                        borderRadius: BorderRadius.circular(15.sp)
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 5.w,
+                        children: [
+                          Icon(Icons.map, color: AppColors.kWhite,),
+                          CustomText(text: 'View on Map', fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.kWhite,)
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
           Gap(30.h),
           SectionHeader(
             text: 'Nearby Rental Offices',
-            
+
             textSize: 14.sp,
             suffixTextSize: 12.sp,
             onTap: () {},
@@ -173,7 +241,6 @@ class LocationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -187,7 +254,7 @@ class LocationTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15.r),
                 ),
                 child: Icon(
-                 iconData?? FontAwesomeIcons.locationCrosshairs,
+                  iconData ?? FontAwesomeIcons.locationCrosshairs,
                   color: AppColors.kAccentPink,
                 ),
               ),
@@ -216,6 +283,62 @@ class LocationTile extends StatelessWidget {
             ],
           ),
           if (hasSuffix) Icon(Icons.navigate_next, color: AppColors.kGrey),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomShortcut extends StatelessWidget {
+  const CustomShortcut({super.key, required this.text, required this.icon});
+  final String text;
+  final IconData icon;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 5.h,
+      children: [
+        Container(
+          height: 50.h,
+          width: 50.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.kAccentPink.withValues(alpha: .2),
+            ),
+          ),
+          child: Icon(icon, color: AppColors.kAccentPink),
+        ),
+        CustomText(text: text, fontSize: 12.sp),
+      ],
+    );
+  }
+}
+
+class PopularCityItem extends StatelessWidget {
+  const PopularCityItem({super.key, required this.name});
+  final String name;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120,
+      width: deviceWidth(context) * .44,
+      padding: EdgeInsets.only(bottom: 10.h, left: 10.w),
+      decoration: BoxDecoration(
+        color: AppColors.kGrey.withValues(alpha: .3),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            text: 'New York',
+            fontSize: 13.sp,
+            color: AppColors.kWhite,
+            fontWeight: FontWeight.bold,
+          ),
+          CustomText(text: '18 Rental Sports', fontSize: 12.sp, color: AppColors.kDarkerGrey,)
         ],
       ),
     );

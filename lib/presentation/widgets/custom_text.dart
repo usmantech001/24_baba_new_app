@@ -14,7 +14,9 @@ class CustomText extends StatelessWidget {
       this.maxLines,
       this.textAlign,
       this.textDecoration,
-      this.textOverflow});
+      this.textOverflow,
+      this.fontStyle
+      });
   final String text;
   final TextAlign? textAlign;
   final TextOverflow? textOverflow;
@@ -23,6 +25,7 @@ class CustomText extends StatelessWidget {
   final double fontSize;
   final FontWeight fontWeight;
   final TextDecoration? textDecoration;
+  final FontStyle? fontStyle;
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -35,7 +38,8 @@ class CustomText extends StatelessWidget {
         color: color,
         fontSize: fontSize,
         fontWeight: fontWeight,
-        textDecoration: textDecoration
+        textDecoration: textDecoration,
+        fontStyle: fontStyle
       )
     );
   }
@@ -44,15 +48,16 @@ class CustomText extends StatelessWidget {
 TextStyle customTextStyle(
 {Color color = AppColors.kBlack,
 double fontSize =16,
-FontWeight fontWeight  = FontWeight.w400, TextDecoration? textDecoration}
+FontWeight fontWeight  = FontWeight.w400, TextDecoration? textDecoration, FontStyle? fontStyle}
 ){
   return TextStyle(
-
+    fontStyle: fontStyle,
          fontFamily: 'Aeonik',
           // textBaseline: TextBaseline.ideographic,
           color: color,
           fontSize: fontSize.sp,
           fontWeight: fontWeight,
+          
           
           
           decoration: textDecoration);

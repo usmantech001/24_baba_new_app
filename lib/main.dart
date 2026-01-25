@@ -36,6 +36,8 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
+              primaryColor: AppColors.kAccentPink,
+            
               textTheme: Theme.of(context).textTheme.apply(
                 fontFamilyFallback: ['Roboto', 'sans-serif'],
               ),

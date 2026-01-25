@@ -48,6 +48,7 @@ class SignUpWidget extends StatelessWidget {
                 obscureText: true,
                 onToggleVisibility: () {},
                 isDarkMode: false,
+                maxLines: 1,
               ),
             Gap(20.h),
              AppButton(

@@ -35,9 +35,11 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                canPop? InkWell(
                   onTap: () => popScreen(),
-                  child: Icon(icon?? Icons.navigate_before, size: 30,)): SizedBox(),
+                  child: SizedBox(
+                    width: 30.w,
+                    child: Icon(icon?? Icons.navigate_before, size: 30,))): SizedBox(),
                 CustomText(text: title, fontWeight: FontWeight.w600),
-               suffix!=null? suffix!: SizedBox()
+               suffix!=null? suffix!: SizedBox(width: 30.w,)
               //  CustomText(
               //     text: 'Reset',
               //     color: AppColors.kAccentPink,

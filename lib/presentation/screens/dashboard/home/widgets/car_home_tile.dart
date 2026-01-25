@@ -19,7 +19,7 @@ class CarHomeTile extends StatelessWidget {
     return InkWell(
       onTap: () => pushNamed(AppRoutes.carDetails),
       child: Container(
-        width: 200.w,
+        width: 170.w,
         decoration: BoxDecoration(
           color: AppColors.kGrey.withValues(alpha: .1),
           borderRadius: BorderRadius.circular(20.r),
@@ -31,29 +31,57 @@ class CarHomeTile extends StatelessWidget {
               children: [
                 CachedNetworkImage(
                   imageUrl: imageUrl,
-                  imageBuilder: (context, imageProvider) => Container(
-                    height: 150.h,
-                    // width: double.infinity,
-                    width: 200.w,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20.r),
-                        topRight: Radius.circular(20.r),
+                  imageBuilder: (context, imageProvider) => FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Container(
+                      height: 150.h,
+                      
+                      width: 200.w,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20.r),
+                          topRight: Radius.circular(20.r),
+                        ),
+                        image: DecorationImage(image: imageProvider, fit: BoxFit.cover, alignment: Alignment.center),
                       ),
-                      image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
                     ),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                   child: Column(
-                    spacing: 10,
+                    spacing: 5,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
                         text: 'Rent Chevrolet Trax',
                         fontWeight: FontWeight.w500,
                         maxLines: 1,
+                      ),
+                      CustomText(
+                        text: 'or similar • Sedan',
+                        fontWeight: FontWeight.w500,
+                        maxLines: 1,
+                        color: AppColors.kDarkerGrey,
+                        textOverflow: TextOverflow.ellipsis,
+                        fontSize: 13.sp,
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.star, color: Colors.yellow,),
+                          RichText(text: TextSpan(
+                            text: '5.0',
+                            style: customTextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                            children: [
+                              TextSpan(
+                                text: '  (1000+)',
+                                style: customTextStyle(fontWeight: FontWeight.w300, fontSize: 11.sp)
+                              )
+                            ]
+                          ),
+                          
+                          )
+                        ],
                       ),
                       RichText(
                         text: TextSpan(
@@ -74,7 +102,8 @@ class CarHomeTile extends StatelessWidget {
                           ],
                         ),
                       ),
-            
+          
+                   /*
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -98,6 +127,7 @@ class CarHomeTile extends StatelessWidget {
                           ),
                         ],
                       ),
+                      */
                     ],
                   ),
                 ),
