@@ -6,6 +6,7 @@ import 'package:baba_24/presentation/screens/dashboard/RateExperince/rate_experi
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_appreciation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_info_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/booking/bookings_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/confirmation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/feedback_appreciation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/insurance_details_screen.dart';
@@ -14,12 +15,17 @@ import 'package:baba_24/presentation/screens/dashboard/booking/social_confirmati
 import 'package:baba_24/presentation/screens/dashboard/bottom_nav_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/brands/all_brands_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/car_details_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/cars/compare_car_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/price_details_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/saved_cars_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/date/date_time_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/driver/additional_driver_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/driver/driver_eligibility_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/filter/filter_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/kyc/document_approval_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/document_rejection_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/document_verification_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/identity_verification_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/location/location_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/notification/notification_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/payment/payment_history_screen.dart';
@@ -46,6 +52,7 @@ import 'package:baba_24/presentation/screens/dashboard/settings/help/support_scr
 import 'package:baba_24/presentation/screens/dashboard/settings/help/trust_safety_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/security/security_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/trip/extra_trip_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/wallet/wallet_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/onboarding_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -102,6 +109,13 @@ class AppRoutes {
   static const String documentApprovalStatus = '/documentApprovalStatus';
   static const String refundPolicy = '/refundPolicy';
   static const String bookingStatus = '/bookingStatus';
+  static const String identity = '/identity';
+  static const String documentRejection = '/documentRejection';
+  static const String compareCars = '/compareCars';
+  static const String documentVerificationProgress = '/documentVerificationProgress';
+  static const String additionalDriver = '/additionalDriver';
+  static const String bookings = '/bookings';
+
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -254,7 +268,28 @@ class AppRoutes {
             builder: (_) =>  RefundPolicyScreen(), settings: settings);  
   case bookingStatus:
         return MaterialPageRoute(
-            builder: (_) =>  BookingStatusScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            builder: (_) =>  BookingStatusScreen(), settings: settings);  
+    case identity:
+        return MaterialPageRoute(
+            builder: (_) =>  IdentityVerificationScreen(), settings: settings);
+    case documentRejection:
+        return MaterialPageRoute(
+            builder: (_) =>  DocumentRejectionScreen(), settings: settings); 
+    case wallet:
+        return MaterialPageRoute(
+            builder: (_) =>  WalletScreen(), settings: settings);  
+    case compareCars:
+        return MaterialPageRoute(
+            builder: (_) =>  CompareClassScreen(), settings: settings);
+    case documentVerificationProgress:
+        return MaterialPageRoute(
+            builder: (_) =>  VerificationProgressScreen(), settings: settings); 
+    case additionalDriver:
+        return MaterialPageRoute(
+            builder: (_) =>  AdditionalDriversScreen(), settings: settings);   
+    case bookings:
+        return MaterialPageRoute(
+            builder: (_) =>  BookingsScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

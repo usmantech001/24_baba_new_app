@@ -1,4 +1,5 @@
 import 'package:baba_24/core/app_route.dart';
+import 'package:baba_24/presentation/screens/dashboard/booking/booking_info_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
@@ -74,9 +75,15 @@ class SettingsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                SettingsBox(text: 'Favorite', icon: Icons.favorite_outline),
-                SettingsBox(text: 'Schedule', icon: Icons.calendar_month),
-                SettingsBox(text: 'Booking', icon: Icons.book_online),
+                SettingsBox(text: 'Favorite', icon: Icons.favorite_outline, onTap: () {
+                  pushNamed(AppRoutes.savedCars);
+                },),
+                SettingsBox(text: 'Schedule', icon: Icons.calendar_month, onTap: () {
+                 // pushNamed(AppRoutes.savedCars);
+                },),
+                SettingsBox(text: 'Booking', icon: Icons.book_online, onTap: () {
+                  pushNamed(AppRoutes.bookings);
+                },),
               ],
             ),
              Gap(30.h),
@@ -126,7 +133,7 @@ class SettingsScreen extends StatelessWidget {
                   title: 'KYC',
                   icon: Icons.language,
                   iconColor: Colors.orange,
-                  onTap: () => pushNamed(AppRoutes.documentApprovalStatus),
+                  onTap: () => pushNamed(AppRoutes.identity),
                 ),
                   SettingsTile(
                     title: 'Loyalty & Rewards',
@@ -296,25 +303,29 @@ class SettingsTile extends StatelessWidget {
 }
 
 class SettingsBox extends StatelessWidget {
-  const SettingsBox({super.key, required this.text, required this.icon});
+  const SettingsBox({super.key, required this.text, required this.icon, required this.onTap});
 
   final String text;
   final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-      decoration: BoxDecoration(
-        color: AppColors.kAccentPink.withValues(alpha: .15),
-        borderRadius: BorderRadius.circular(15.sp),
-      ),
-      child: Column(
-        spacing: 8.h,
-        children: [
-          Icon(icon, color: AppColors.kAccentPink,),
-          CustomText(text: text, fontSize: 12.sp),
-        ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+        decoration: BoxDecoration(
+          color: AppColors.kAccentPink.withValues(alpha: .15),
+          borderRadius: BorderRadius.circular(15.sp),
+        ),
+        child: Column(
+          spacing: 8.h,
+          children: [
+            Icon(icon, color: AppColors.kAccentPink,),
+            CustomText(text: text, fontSize: 12.sp),
+          ],
+        ),
       ),
     );
   }

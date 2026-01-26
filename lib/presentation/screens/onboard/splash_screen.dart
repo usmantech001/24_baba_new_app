@@ -21,7 +21,7 @@ class _SplashScrrenState extends State<SplashScrren>
 
   void nextScreen() async {
     Future.delayed(const Duration(seconds: 2)).then((_) {
-      removeAllAndPushScreen(AppRoutes.bookingStatus);
+      removeAllAndPushScreen(AppRoutes.bottomNav);
     });
   }
 
