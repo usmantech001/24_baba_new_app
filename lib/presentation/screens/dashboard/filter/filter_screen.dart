@@ -21,7 +21,7 @@ class _FilterScreenState extends State<FilterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> sortBy = ['Recommended', 'Peice: Low to High', 'Popular'];
+    List<String> sortBy = ['Recommended', 'Price: Low to High', 'Popular'];
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(100),
@@ -31,9 +31,7 @@ class _FilterScreenState extends State<FilterScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                InkWell(
-                  onTap: () => popScreen(),
-                  child: Icon(Icons.close)),
+                InkWell(onTap: () => popScreen(), child: Icon(Icons.close)),
                 CustomText(text: 'Filters', fontWeight: FontWeight.w600),
                 CustomText(
                   text: 'Reset',
@@ -48,18 +46,18 @@ class _FilterScreenState extends State<FilterScreen> {
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
-          child: AppButton(isLoading: false, onPressed: (){}, text: 'Apply Filters'),
+          child: AppButton(
+            isLoading: false,
+            onPressed: () {},
+            text: 'Apply Filters',
+          ),
         ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(vertical: 24.h),
         child: Column(
           children: [
-            SectionHeader(
-              text: 'Sort By',
-              onTap: () => null,
-              
-            ),
+            SectionHeader(text: 'Sort By', onTap: () => null),
             SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
               physics: const BouncingScrollPhysics(),
@@ -75,10 +73,7 @@ class _FilterScreenState extends State<FilterScreen> {
               ),
             ),
             Gap(30),
-            SectionHeader(
-              text: 'Price Range',
-              onTap: () => null,
-            ),
+            SectionHeader(text: 'Price Range', onTap: () => null),
             RangeSlider(
               min: 5000,
               max: 10000000,
@@ -91,10 +86,7 @@ class _FilterScreenState extends State<FilterScreen> {
               },
             ),
             Gap(20.h),
-             SectionHeader(
-              text: 'Transmission',
-              onTap: () => null,
-            ),
+            SectionHeader(text: 'Transmission', onTap: () => null),
 
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
@@ -102,34 +94,28 @@ class _FilterScreenState extends State<FilterScreen> {
                 spacing: 20.w,
                 children: [
                   Expanded(child: CategoryTile(text: 'Automatic')),
-                  Expanded(child: CategoryTile(text: 'Manual'))
+                  Expanded(child: CategoryTile(text: 'Manual')),
                 ],
               ),
             ),
             Gap(30.h),
-             SectionHeader(
-              text: 'Fuel Type',
-              onTap: () => null,
-            ),
+            SectionHeader(text: 'Fuel Type', onTap: () => null),
 
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 10.h),
               child: Wrap(
-               alignment: WrapAlignment.start,
-               // direction: Axis.horizontal,
+                alignment: WrapAlignment.start,
+                // direction: Axis.horizontal,
                 spacing: 20,
                 runSpacing: 10,
                 children: [
-              
-                  
-                  CategoryTile(text: 'Petrol', isSelected: true,),
+                  CategoryTile(text: 'Petrol', isSelected: true),
                   CategoryTile(text: 'Electric'),
                   CategoryTile(text: 'Diesel'),
                   CategoryTile(text: 'Hybrid'),
                 ],
               ),
             ),
-
           ],
         ),
       ),
