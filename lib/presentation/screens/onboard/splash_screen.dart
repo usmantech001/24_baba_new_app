@@ -1,4 +1,3 @@
-
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +20,7 @@ class _SplashScrrenState extends State<SplashScrren>
 
   void nextScreen() async {
     Future.delayed(const Duration(seconds: 2)).then((_) {
-      removeAllAndPushScreen(AppRoutes.bookingStatus);
+      // removeAllAndPushScreen(AppRoutes.bookingStatus);
     });
   }
 
@@ -50,8 +49,7 @@ class _SplashScrrenState extends State<SplashScrren>
       body: Center(
         child: ScaleTransition(
           scale: scale.animate(controller),
-          child: Image.asset('assets/images/logo.png', width: 200.w,),
-          
+          child: Image.asset('assets/images/logo.png', width: 200.w),
         ),
       ),
     );
