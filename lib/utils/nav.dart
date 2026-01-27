@@ -2,30 +2,45 @@ import 'package:flutter/material.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
-void pushNamed(String routeName, {Object? arguments}){
+/// Now returns a Future of any result from the pushed screen
+Future<T?> pushNamed<T extends Object?>(String routeName, {Object? arguments}) {
   final context = navigatorKey.currentContext!;
-  Navigator.pushNamed(context, routeName, arguments: arguments);
+  return Navigator.pushNamed<T>(context, routeName, arguments: arguments);
 }
 
-void popScreen(){
-  
+Future<void> popScreen<T extends Object?>([T? result]) async {
   final context = navigatorKey.currentContext!;
-  Navigator.pop(context);
+  Navigator.pop(context, result);
 }
 
-void popAndPushScreen(String routeName, {Object? arguments}){
-   final context = navigatorKey.currentContext!;
-  Navigator.popAndPushNamed(
-          context, routeName, arguments: arguments);
-}
-void removeAllAndPushScreen(String routeName, {Object? arguments}){
-   final context = navigatorKey.currentContext!;
-  Navigator.pushNamedAndRemoveUntil(
-          context, routeName, (Route<dynamic> route) => false, arguments: arguments);
+void popAndPushScreen(String routeName, {Object? arguments}) {
+  final context = navigatorKey.currentContext!;
+  Navigator.popAndPushNamed(context, routeName, arguments: arguments);
 }
 
-void removeUntilAndPushScreen(String routeName,String routeToKeep ,{Object? arguments}){
-   final context = navigatorKey.currentContext!;
-  Navigator.pushNamedAndRemoveUntil(
-          context, routeName, (Route<dynamic> route) => route.settings.name == routeToKeep, arguments: arguments);
+Future<T?> removeAllAndPushScreen<T extends Object?>(
+  String routeName, {
+  Object? arguments,
+}) {
+  final context = navigatorKey.currentContext!;
+  return Navigator.pushNamedAndRemoveUntil<T>(
+    context,
+    routeName,
+    (Route<dynamic> route) => false,
+    arguments: arguments,
+  );
+}
+
+Future<T?> removeUntilAndPushScreen<T extends Object?>(
+  String routeName,
+  String routeToKeep, {
+  Object? arguments,
+}) {
+  final context = navigatorKey.currentContext!;
+  return Navigator.pushNamedAndRemoveUntil<T>(
+    context,
+    routeName,
+    (Route<dynamic> route) => route.settings.name == routeToKeep,
+    arguments: arguments,
+  );
 }

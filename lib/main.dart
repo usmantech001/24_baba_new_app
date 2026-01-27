@@ -12,7 +12,7 @@ import 'package:baba_24/presentation/wrapper/AuthWrapper.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
-  print(dotenv.env['DEV_BASE_URL']);
+  print(dotenv.env['DEV_API_URL']);
   runApp(const MyApp());
 }
 

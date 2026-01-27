@@ -66,7 +66,7 @@ class _AllBrandsScreenState extends State<AllBrandsScreen> {
     });
 
     try {
-      final baseURL = dotenv.env['DEV_BASE_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final url = Uri.parse('$baseURL/brands?page=1&limit=$pageSize');
 
       final response = await http.get(
@@ -122,7 +122,7 @@ class _AllBrandsScreenState extends State<AllBrandsScreen> {
 
     try {
       final nextPage = currentPage + 1;
-      final baseURL = dotenv.env['DEV_BASE_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final url = Uri.parse('$baseURL/brands?page=$nextPage&limit=$pageSize');
 
       final response = await http.get(

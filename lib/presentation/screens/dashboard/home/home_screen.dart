@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final baseURL = dotenv.env['DEV_BASE_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final response = await http.get(Uri.parse('$baseURL/brands'));
 
       if (response.statusCode == 200) {
@@ -421,18 +421,32 @@ class BrandTile extends StatelessWidget {
         spacing: 10.w,
         children: [
           isNetwork
-              ? CachedNetworkImage(
-                  imageUrl: img,
-                  width: 30.w,
-                  height: 30.h,
-                  placeholder: (context, url) =>
-                      const CircularProgressIndicator(strokeWidth: 2),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+              ?
+                // CachedNetworkImage(
+                //     imageUrl: img,
+                //     width: 30.w,
+                //     height: 30.h,
+                //     placeholder: (context, url) =>
+                //         const CircularProgressIndicator(strokeWidth: 2),
+                //     errorWidget: (context, url, error) => const Icon(Icons.error),
+                //   )
+                ColorFiltered(
+                  colorFilter: const ColorFilter.mode(
+                    Colors.transparent,
+                    BlendMode.dst, // preserves alpha exactly
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: img,
+                    width: 30.w,
+                    height: 30.h,
+                    fit: BoxFit.cover,
+                  ),
                 )
               : Image.asset(
                   'assets/images/$img.png',
                   width: 30.w,
                   height: 30.h,
+                  fit: BoxFit.cover,
                 ),
           CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
         ],
