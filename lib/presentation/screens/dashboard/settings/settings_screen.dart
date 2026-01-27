@@ -32,6 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final userString = prefs.getString('current_user');
+
     if (userString != null) {
       setState(() {
         currentUser = jsonDecode(userString);
@@ -49,12 +50,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
+    await prefs.remove('current_user');
+    await prefs.remove('auth_token');
+
     if (token == null) {
       removeAllAndPushScreen(AppRoutes.signInSIgnUp);
       return;
     }
 
-    final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
     final updatedURL = '$baseURL/auth/logout';
 
     try {

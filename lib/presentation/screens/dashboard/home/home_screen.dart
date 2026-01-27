@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      final baseURL = dotenv.env['DEV_BASE_URL'] ?? '';
+      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/current-user';
 
       final response = await http.get(
@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
       final response = await http.get(Uri.parse('$baseURL/brands'));
 
       if (response.statusCode == 200) {

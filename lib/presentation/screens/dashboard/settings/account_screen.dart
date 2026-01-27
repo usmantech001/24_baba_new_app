@@ -72,7 +72,7 @@
 //         return;
 //       }
 
-//       final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+//       final baseURL = dotenv.env['PROD_API_URL'] ?? '';
 //       final updatedURL = '$baseURL/auth/update-user';
 
 //       final response = await http.post(
@@ -296,7 +296,7 @@ class _AccountScreenState extends State<AccountScreen> {
         return;
       }
 
-      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/update-user';
 
       // Build request body dynamically
