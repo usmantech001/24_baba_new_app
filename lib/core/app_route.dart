@@ -38,6 +38,8 @@ import 'package:baba_24/presentation/screens/dashboard/promotion/promotion_scree
 import 'package:baba_24/presentation/screens/dashboard/rewards/all_rewards_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/rewards/loyalty_rewards_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/account_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/address/add_address_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/address/address_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/fee/fee_transparency_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/fee/security_deposit_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/contact_support_screen.dart';
@@ -50,6 +52,7 @@ import 'package:baba_24/presentation/screens/dashboard/settings/help/support_cen
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_faq_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/trust_safety_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/languageCurrency/language_currency_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/security/security_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/trip/extra_trip_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/wallet/wallet_screen.dart';
@@ -115,7 +118,9 @@ class AppRoutes {
   static const String documentVerificationProgress = '/documentVerificationProgress';
   static const String additionalDriver = '/additionalDriver';
   static const String bookings = '/bookings';
-
+  static const String languageCurrency = '/languageCurrency';
+  static const String addresses = '/addresses';
+  static const String addAddress = '/addAddress';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -289,7 +294,16 @@ class AppRoutes {
             builder: (_) =>  AdditionalDriversScreen(), settings: settings);   
     case bookings:
         return MaterialPageRoute(
-            builder: (_) =>  BookingsScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+            builder: (_) =>  BookingsScreen(), settings: settings);     
+    case languageCurrency:
+        return MaterialPageRoute(
+            builder: (_) =>  LanguageCurrencyScreen(), settings: settings);  
+   case addresses:
+        return MaterialPageRoute(
+            builder: (_) =>  AddressSettingsScreen(), settings: settings);    
+            case addAddress:
+        return MaterialPageRoute(
+            builder: (_) =>  AddAddressScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

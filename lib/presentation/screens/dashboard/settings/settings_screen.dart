@@ -164,11 +164,13 @@ class SettingsScreen extends StatelessWidget {
                   title: 'Language',
                   icon: Icons.language,
                   iconColor: Colors.orange,
+                  onTap: () => pushNamed(AppRoutes.languageCurrency),
                 ),
                 SettingsTile(
                   title: 'My Address',
                   icon: Icons.location_city,
                   iconColor: Colors.indigo,
+                  onTap: () => pushNamed(AppRoutes.addresses),
                 ),
                 ],
               ),
