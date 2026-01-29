@@ -111,6 +111,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      if(Navigator.canPop(context)) InkWell(
+                        onTap: () => popScreen(),
+                        child: Icon(Icons.navigate_before)),
                       CustomText(
                         text: 'My Bookings',
                         fontSize: 16.sp,

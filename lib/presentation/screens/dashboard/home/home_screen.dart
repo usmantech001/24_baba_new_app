@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:baba_24/core/app_route.dart';
+import 'package:baba_24/data/controller/location_controller.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/car_home_tile.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/section_header.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_button.dart';
+import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
@@ -18,6 +20,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoadingUser = true;
   bool _hasFetchedUser = false;
 
+  late VideoPlayerController _controller;
+  bool isPlaying = false;
+  bool isMute = true;
   // 🔹 Brands
   List<Map<String, dynamic>> brands = [];
   bool isLoadingBrands = true;
@@ -337,6 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationController = context.watch<LocationController>();
     List<String> categories = [
       "All",
       "Sedan",
@@ -357,17 +365,52 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     child: Column(
                       children: [
-                        Image.asset(
-                          'assets/images/home-image.jpeg',
-                          width: double.infinity,
-                          fit: BoxFit.fill,
-                          height: 300,
-                        ),
+                        _controller.value.isInitialized
+                            ? AspectRatio(
+                                aspectRatio: _controller.value.aspectRatio,
+                                child: Stack(
+                                  children: [
+                                    VideoPlayer(_controller),
+                                    Positioned(
+                                      right: 10,
+                                      top: 10,
+                                      child: InkWell(
+                                        onTap: () {
+                                          if (isMute) {
+                                            _controller.seekTo(
+                                              Duration(seconds: 1),
+                                            );
+                                            _controller.setVolume(1);
+                                            _controller.play();
+                                            isMute = false;
+
+                                            setState(() {});
+                                          } else {
+                                            _controller.setVolume(0.0);
+                                            isMute = true;
+                                            setState(() {});
+                                          }
+                                        },
+                                        child: CustomIcon(
+                                          iconData: isMute
+                                              ? Icons.volume_off
+                                              : Icons.volume_up,
+                                          bgColor: AppColors.kWhite,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Container(),
+
                         Container(
+                          // height: 200.h,
                           padding: EdgeInsets.symmetric(
                             horizontal: 10.w,
                             vertical: 20.h,
                           ),
+                          // margin: EdgeInsets.symmetric(horizontal: 30),
                           width: deviceWidth(context),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20.r),
@@ -375,11 +418,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             boxShadow: [
                               BoxShadow(
                                 offset: Offset(3, 3),
-                                color: Colors.grey.withOpacity(.2),
+                                color: Colors.grey.withValues(alpha: .2),
                               ),
                               BoxShadow(
                                 offset: Offset(-3, -3),
-                                color: Colors.grey.withOpacity(.2),
+                                color: Colors.grey.withValues(alpha: .2),
                               ),
                             ],
                           ),
@@ -388,9 +431,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               HomeSelector(
                                 icon: FontAwesomeIcons.locationDot,
-                                title: 'PICK UP YOUR LOCATION',
-                                value: 'Where are you going ?',
-                                onTap: () => pushNamed(AppRoutes.location),
+                                title:
+                                    locationController.currentAddress.isNotEmpty
+                                    ? 'YOUR PICK UP LOCATION'
+                                    : 'PICK UP YOUR LOCATION',
+                                value:
+                                    locationController.currentAddress.isNotEmpty
+                                    ? locationController.currentAddress
+                                    : 'Where are you going ?',
+                                onTap: () {
+                                  pushNamed(AppRoutes.location);
+                                },
                               ),
                               Row(
                                 spacing: 10.w,
@@ -401,8 +452,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       title: 'START DATE',
                                       value: 'OCT 12, 10:00',
                                       valueColor: AppColors.kBlack,
-                                      onTap: () =>
-                                          pushNamed(AppRoutes.dateTime),
+                                      onTap: () {
+                                        pushNamed(AppRoutes.dateTime);
+                                      },
                                     ),
                                   ),
                                   Expanded(
@@ -411,26 +463,104 @@ class _HomeScreenState extends State<HomeScreen> {
                                       title: 'END DATE',
                                       value: 'OCT 12, 10:00',
                                       valueColor: AppColors.kBlack,
-                                      onTap: () =>
-                                          pushNamed(AppRoutes.dateTime),
+                                      onTap: () {
+                                        pushNamed(AppRoutes.dateTime);
+                                      },
                                     ),
                                   ),
                                 ],
                               ),
-                              AppButton(
-                                isLoading: false,
-                                onPressed: () {},
-                                text: 'Search your perfect ride',
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(vertical: 10.h),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  color: AppColors.kAccentPink,
+                                ),
+                                child: Row(
+                                  spacing: 10.w,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.search, color: AppColors.kWhite),
+                                    CustomText(
+                                      text: 'Search',
+                                      color: AppColors.kWhite,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ],
+                                ),
                               ),
+                              // AppButton(
+                              //   isLoading: false,
+                              //   onPressed: () {},
+                              //   text: 'Search ',
+
+                              // ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Gap(40.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15.w),
+                    child: Row(
+                      spacing: 10.w,
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: TextEditingController(),
+                            decoration: InputDecoration(
+                              filled: true,
+                              hintText: 'Search cars, brands....',
+                              fillColor: AppColors.kGrey.withValues(alpha: .1),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                                // borderSide: BorderSide(color: Colors.red, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.transparent,
+                                ),
+                                // borderSide: BorderSide(color: Colors.red, width: 1),
+                              ),
+                            ),
+                          ),
+                        ),
 
-                  SectionHeader(text: 'Categories', onTap: () => null),
+                        Container(
+                          height: 50.h,
+                          width: 50.w,
+                          decoration: BoxDecoration(
+                            color: AppColors.kAccentPink,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Icon(Icons.tune, color: AppColors.kWhite),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Gap(40.h),
+                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  // // SingleChildScrollView(
+                  // //   padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
+                  // //   physics: const BouncingScrollPhysics(),
+                  // //   scrollDirection: Axis.horizontal,
+                  // //   child: Row(
+                  // //     spacing: 10,
+                  // //     children: List.generate(categories.length, (index) {
+                  // //       return CategoryTile(
+                  // //         text: categories[index],
+                  // //         isSelected: selectedCategoryIndex == index,
+                  // //       );
+                  // //     }),
+                  // //   ),
+                  // // ),
+
+                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  /*
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
@@ -439,25 +569,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       spacing: 10,
-                      children: List.generate(categories.length, (index) {
-                        return CategoryTile(
-                          text: categories[index],
-                          isSelected: selectedCategoryIndex == index,
+                      children: List.generate(10, (index) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                          //width: 50.w,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.kDarkerGrey.withValues(alpha: .1)
+                            ),
+                            borderRadius: BorderRadius.circular(10.r)
+                          ),
+                          child: Column(
+                            spacing: 8,
+                            children: [
+                              CircleAvatar(
+                                child: Image.asset('assets/images/bmw_logo.png'),
+                              ),
+                              CustomText(text: 'CHEVROLET', maxLines: 2, fontSize: 12.sp, fontWeight: FontWeight.w600,),
+                              CustomText(text: '225', fontSize: 12.sp, color: AppColors.kDarkerGrey,)
+                            ],
+                          ),
                         );
                       }),
                     ),
                   ),
-
-                  // ================= BRANDS SECTION =================
-                  SectionHeader(
-                    text: 'Brands',
-                    onTap: () {
-                      debugPrint(
-                        'Navigating to AllBrandsScreen with ${brands.length} brands',
-                      );
-                      pushNamed(AppRoutes.allBrands, arguments: brands);
-                    },
-                  ),
+                  */
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 15.w),
                     child: isLoadingBrands
@@ -500,9 +636,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Gap(20.h),
-
-                  // ================= REMAINING SECTIONS UNCHANGED =================
-                  SectionHeader(text: 'Smart Picks', onTap: () => null),
+                  SectionHeader(
+                    text: 'Standard Cars',
+                    //  shortDesc: 'Premium Cars at great prices',
+                    onTap: () => null,
+                  ),
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
@@ -543,6 +681,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       horizontal: 15.w,
                       vertical: 20.h,
                     ),
+                    physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: isLoadingElectricCars
                         ? const Padding(
@@ -565,13 +704,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                   ),
                   Gap(20.h),
-
-                  SectionHeader(text: 'Business Class Cars', onTap: () => null),
+                  SectionHeader(
+                    text: 'Business Class Cars',
+                    // shortDesc: 'Professional vehicles for business and comfort',
+                    onTap: () => null,
+                  ),
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
                       vertical: 20.h,
                     ),
+                    physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: isLoadingBusinessClass
                         ? const Padding(
@@ -596,7 +739,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SectionHeader(
                     text: 'Promotion',
-                    shortDesc: 'Professional vehicles for business and comfort',
+                    //shortDesc: 'Professional vehicles for business and comfort',
                     onTap: () => pushNamed(AppRoutes.promotion),
                     suffixText: 'View All',
                   ),
@@ -604,6 +747,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   CarouselSlider.builder(
                     itemCount: 3,
+
                     itemBuilder: (context, index, _) {
                       return Container(
                         margin: EdgeInsets.symmetric(horizontal: 15.w),
@@ -629,6 +773,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     options: CarouselOptions(
                       viewportFraction: 1,
+
                       height: 150,
                       autoPlay: true,
                     ),
@@ -730,24 +875,29 @@ class HomeSelector extends StatelessWidget {
           spacing: 10.w,
           children: [
             Icon(icon, color: AppColors.kAccentPink, size: 15.sp),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  text: title,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.kAccentPink,
-                ),
-                CustomText(
-                  text: value,
-                  color: valueColor ?? AppColors.kLightPink.withOpacity(.5),
-                  fontSize: 11.sp,
-                  fontWeight: valueColor != null
-                      ? FontWeight.w600
-                      : FontWeight.w400,
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: title,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.kAccentPink,
+                  ),
+                  CustomText(
+                    text: value,
+                    color:
+                        valueColor ??
+                        AppColors.kLightPink.withValues(alpha: .5),
+                    fontSize: 11.sp,
+                    fontWeight: valueColor != null
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -779,6 +929,31 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
+// class BrandTile extends StatelessWidget {
+//   const BrandTile({super.key, required this.name, required this.img});
+//   final String name;
+//   final String img;
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       //width: deviceWidth(context),
+//       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
+//       alignment: Alignment.center,
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(15.r),
+//         color: Colors.grey.withValues(alpha: .07),
+//       ),
+//       child: Row(
+//         spacing: 10.w,
+//         children: [
+//           Image.asset('assets/images/$img.png', height: 30.h, width: 30.w),
+//           CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 class HomeHeader extends StatelessWidget {
   final Map<String, dynamic>? currentUser;
   final bool isLoadingUser;
@@ -788,28 +963,29 @@ class HomeHeader extends StatelessWidget {
     return SafeArea(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+        //color: Colors.red,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Logo + Loading Indicator
             Row(
               spacing: 10.w,
-              children: [
-                Image.asset('assets/images/logo.png', height: 50),
-                if (isLoadingUser)
-                  SizedBox(
-                    width: 20.w,
-                    height: 20.h,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-              ],
+              children: [Image.asset('assets/images/logo.png', height: 50)],
             ),
-            // Right side icons
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
               decoration: BoxDecoration(
-                color: AppColors.kGrey.withOpacity(.2),
+                color: AppColors.kGrey.withValues(alpha: .2),
                 borderRadius: BorderRadius.circular(15.sp),
+                // boxShadow: [
+                //   BoxShadow(
+                //     offset: Offset(3, 3),
+                //     color: Colors.grey.withValues(alpha: .2),
+                //   ),
+                //   BoxShadow(
+                //     offset: Offset(-3, -3),
+                //    // color: Colors.grey.withValues(alpha: .2),
+                //   ),
+                // ],
               ),
               child: Row(
                 spacing: 10.w,

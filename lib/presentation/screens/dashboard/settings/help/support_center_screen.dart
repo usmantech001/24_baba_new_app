@@ -1,6 +1,8 @@
+import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -27,6 +29,14 @@ class _SupportCenterScreenState extends State<SupportCenterScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kWhite.withValues(alpha: .95),
+      floatingActionButton: InkWell(
+        onTap: () => pushNamed(AppRoutes.liveChat),
+        child: CircleAvatar(
+          radius: 25.r,
+          backgroundColor: AppColors.kAccentPink,
+          child: Icon(Icons.message, color: AppColors.kWhite,),
+        ),
+      ),
       appBar: CustomAppbar(title: 'Support Center'),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 15.w),

@@ -81,6 +81,7 @@ class CarHomeTile extends StatelessWidget {
                         text: 'Rent $title',
                         fontWeight: FontWeight.w500,
                         maxLines: 1,
+                        fontSize: 14.sp,
                       ),
                       CustomText(
                         text: subtitle,

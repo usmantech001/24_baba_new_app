@@ -1,4 +1,5 @@
 
+import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/bookings_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/saved_cars_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/explore/explore_screen.dart';
@@ -6,6 +7,7 @@ import 'package:baba_24/presentation/screens/dashboard/home/home_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/settings_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/utils/app_colors.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -48,10 +50,13 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: CircleAvatar(
-        radius: 25.r,
-        backgroundColor: AppColors.kAccentPink,
-        child: Icon(Icons.message, color: AppColors.kWhite,),
+      floatingActionButton: InkWell(
+        onTap: () => pushNamed(AppRoutes.liveChat),
+        child: CircleAvatar(
+          radius: 25.r,
+          backgroundColor: AppColors.kAccentPink,
+          child: Icon(Icons.message, color: AppColors.kWhite,),
+        ),
       ),
       bottomNavigationBar: SizedBox(
         //height: 80.h,

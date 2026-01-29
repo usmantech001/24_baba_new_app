@@ -9,6 +9,7 @@ import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class HelpSupportScreen extends StatelessWidget {
@@ -22,6 +23,10 @@ class HelpSupportScreen extends StatelessWidget {
       'Insurance & Coverage',
       'Vehicle Pickup & Drop-off',
       'Report Damage',
+    ];
+
+    final List<IconData> icons =[
+      FontAwesomeIcons.calendar
     ];
     return Scaffold(
       appBar: CustomAppbar(title: 'Help & Support'),
@@ -84,6 +89,7 @@ class HelpSupportScreen extends StatelessWidget {
                     icon: Icons.help,
                     text: 'FAQ',
                     subtext: 'Instant answers to common questions',
+                    onTap: () => pushNamed(AppRoutes.faq),
                   ),
                 ),
                 Expanded(
@@ -91,6 +97,7 @@ class HelpSupportScreen extends StatelessWidget {
                     icon: Icons.help,
                     text: 'CONTACT US',
                     subtext: 'Talk to our support team',
+                    onTap: () => pushNamed(AppRoutes.supportCenter),
                   ),
                 ),
               ],
@@ -131,6 +138,7 @@ class HelpSupportScreen extends StatelessWidget {
                   bgColor: AppColors.kAccentPink.withValues(alpha: .03),
                   radius: 30,
                   text: 'Live Chat',
+                  onTap: () => pushNamed(AppRoutes.liveChat),
                 ),
                 CustomIcon(
                   iconData: Icons.phone,
@@ -161,36 +169,41 @@ class HelpSupportContainer extends StatelessWidget {
     required this.icon,
     required this.text,
     required this.subtext,
+    required this.onTap
   });
   final IconData icon;
   final String text;
   final String subtext;
+  final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.h),
-      decoration: BoxDecoration(
-        color: AppColors.kLightPink.withValues(alpha: .02),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 10.h,
-        children: [
-          Container(
-            padding: EdgeInsets.all(10.sp),
-            decoration: BoxDecoration(
-              color: AppColors.kAccentPink.withValues(alpha: .07),
-              borderRadius: BorderRadius.circular(10.sp),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.h),
+        decoration: BoxDecoration(
+          color: AppColors.kLightPink.withValues(alpha: .02),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 10.h,
+          children: [
+            Container(
+              padding: EdgeInsets.all(10.sp),
+              decoration: BoxDecoration(
+                color: AppColors.kAccentPink.withValues(alpha: .07),
+                borderRadius: BorderRadius.circular(10.sp),
+              ),
+              child: Icon(Icons.question_answer, color: AppColors.kAccentPink),
             ),
-            child: Icon(Icons.question_answer, color: AppColors.kAccentPink),
-          ),
-          CustomText(text: text, fontSize: 14.sp, fontWeight: FontWeight.w600),
-          CustomText(
-            text: subtext,
-            fontSize: 12.sp,
-            color: AppColors.kAccentPink.withValues(alpha: .6),
-          ),
-        ],
+            CustomText(text: text, fontSize: 14.sp, fontWeight: FontWeight.w600),
+            CustomText(
+              text: subtext,
+              fontSize: 12.sp,
+              color: AppColors.kAccentPink.withValues(alpha: .6),
+            ),
+          ],
+        ),
       ),
     );
   }

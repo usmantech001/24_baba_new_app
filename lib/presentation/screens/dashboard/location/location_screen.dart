@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:baba_24/data/controller/location_controller.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/section_header.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
@@ -5,71 +8,245 @@ import 'package:baba_24/presentation/screens/onboard/widgets/toggle_selector.dar
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/global.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:google_places_flutter/model/prediction.dart';
 
-class LocationScreen extends StatelessWidget {
+class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
+
+  @override
+  State<LocationScreen> createState() => _LocationScreenState();
+}
+
+class _LocationScreenState extends State<LocationScreen> {
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LocationController>().onTabChange(0);
+    });
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppbar(title: 'Select Location'),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15.w),
-            child: Column(
-              children: [
-                AppTextField(
-                  controller: TextEditingController(),
-                  decoration: InputDecoration(
-                    filled: true,
-                    hintText: 'Where are you picking up',
-                    prefixIcon: Icon(Icons.search),
-                    fillColor: AppColors.kGrey.withValues(alpha: .1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                      // borderSide: BorderSide(color: Colors.red, width: 1),
+      body: Consumer<LocationController>(
+        builder: (context, locationController, child) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15.w),
+                child: Column(
+                  children: [
+                    GooglePlaceAutoCompleteTextField(
+                
+                textEditingController: TextEditingController(),
+                googleAPIKey: "AIzaSyAUaK6i5JvOX3UlNuCXErfoFuLBocmvRrw",
+                 inputDecoration: InputDecoration(
+                        filled: true,
+                        hintText: 'Where are you picking up',
+                        prefixIcon: Icon(Icons.search),
+                        fillColor: AppColors.kGrey.withValues(alpha: .1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                          // borderSide: BorderSide(color: Colors.red, width: 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.transparent),
+                          // borderSide: BorderSide(color: Colors.red, width: 1),
+                        ),
+                      ),
+                debounceTime: 800,
+                //countries: ["ng"], // Nigeria
+               // isLatLngRequired: true,
+               isCrossBtnShown: false,
+                getPlaceDetailWithLatLng: (Prediction prediction) async{
+                  double lat = double.parse(prediction.lat!);
+                  double lng = double.parse(prediction.lng!);
+                  
+                  if(locationController.tabIndex==1){
+                    final controller = await locationController.mapController.future;
+                
+                controller.animateCamera(
+                    CameraUpdate.newLatLngZoom(LatLng(lat, lng), 15),
+                  );
+                  }
+                },
+                itemClick: (Prediction prediction) {
+                  if(locationController.tabIndex==0){
+                    print(prediction.description);
+                  locationController.onSelectAddress(prediction.description??'');
+                  popScreen();
+                  }
+                },
+              ),
+              
+               
+                    
+                    Gap(20.h),
+                    ToggleSelectorWidget(
+                      tabIndex: locationController.tabIndex,
+                      tabText: ['List View', 'Map View'],
+                      onTap: (index) {
+                        locationController.onTabChange(index);
+                      },
+                      selectedColor: AppColors.kWhite,
+                      selectedTexColor: AppColors.kBlack,
+                      unSelectedTexColor: AppColors.kAccentPink,
+                      bgColor: AppColors.kAccentPink.withValues(alpha: .05),
+                      hasMargin: false,
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.transparent),
-                      // borderSide: BorderSide(color: Colors.red, width: 1),
+                    Gap(20.h),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: PageView(
+                  physics: NeverScrollableScrollPhysics(),
+                  controller: locationController.pageController,
+                  children: [LocationListView(), MapView()],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class MapView extends StatefulWidget {
+  const MapView({super.key});
+
+  @override
+  State<MapView> createState() => _MapViewState();
+}
+
+class _MapViewState extends State<MapView> {
+  
+  bool isPositionInitialized = false;
+  late CameraPosition cameraPosition;
+
+  LatLng? lastPosition;
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locationController = context.read<LocationController>();
+      locationController.determinePosition().then((Position? position) {
+        if (position != null) {
+          cameraPosition = CameraPosition(
+            target: LatLng(position!.latitude, position.longitude),
+            zoom: 14.4746,
+          );
+        } else {
+          cameraPosition = CameraPosition(
+            target: LatLng(37.42796133580664, -122.085749655962),
+            zoom: 14.4746,
+          );
+        }
+        isPositionInitialized = true;
+        setState(() {});
+      });
+    });
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locationController = context.watch<LocationController>();
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w),
+      height: 200.h,
+      //width: double.infinity,
+      child: isPositionInitialized
+          ? Stack(
+              children: [
+                GoogleMap(
+                  mapType: MapType.normal,
+                  initialCameraPosition: cameraPosition,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                  onMapCreated: (GoogleMapController controller) {
+                    if(!locationController.mapController.isCompleted){
+                      locationController.mapController.complete(controller);
+                    }
+                    
+                  },
+                  onCameraMove: (position) {
+                    // print('...lat ${position.target.latitude} lng ${position.target.longitude}');
+                    //
+                    lastPosition = position.target;
+                  },
+                  onTap: (latlng) {
+                    locationController.getAddressFromLatLng(latlng);
+                  },
+                  onCameraIdle: () {
+                    print('.....on camera idle called ${lastPosition}');
+                    if (lastPosition != null) {
+                      locationController.getAddressFromLatLng(lastPosition!);
+                    }
+                  },
+                ),
+
+                if (locationController.currentAddress.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    child: Container(
+                      padding: EdgeInsets.all(10.sp),
+                      decoration: BoxDecoration(
+                        color: AppColors.kWhite,
+                        borderRadius: BorderRadius.circular(15.sp),
+                      ),
+                      child: Column(
+                        spacing: 5.h,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            spacing: 5.w,
+                            children: [
+                              Icon(
+                                FontAwesomeIcons.locationDot,
+                                color: AppColors.kAccentPink,
+                                size: 15.sp,
+                              ),
+                              CustomText(
+                                text: 'Selected Address',
+                                fontSize: 12.sp,
+                              ),
+                            ],
+                          ),
+                          CustomText(
+                            text: locationController.currentAddress,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Gap(20.h),
-                ToggleSelectorWidget(
-                  tabIndex: 0,
-                  tabText: ['List View', 'Map View'],
-                  onTap: (index) {},
-                  selectedColor: AppColors.kWhite,
-                  selectedTexColor: AppColors.kBlack,
-                  unSelectedTexColor: AppColors.kAccentPink,
-                  bgColor: AppColors.kAccentPink.withValues(alpha: .05),
-                  hasMargin: false,
-                ),
-                Gap(20.h),
               ],
-            ),
-          ),
-          Flexible(
-            child: PageView(
-              physics: NeverScrollableScrollPhysics(),
-              //controller: controller.pageController,
-              children: [
-                LocationListView(),
-                CustomText(text: 'Map View'),
-              ],
-            ),
-          ),
-        ],
-      ),
+            )
+          : Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -84,26 +261,43 @@ class LocationListView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-            decoration: BoxDecoration(
-              color: AppColors.kLightPink.withValues(alpha: .05),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Row(
-              spacing: 10.w,
-              children: [
-                Icon(
-                  FontAwesomeIcons.locationArrow,
-                  color: AppColors.kAccentPink,
-                ),
-                CustomText(
-                  text: 'Use my current location',
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.kAccentPink,
-                  fontSize: 14.sp,
-                ),
-              ],
+          InkWell(
+
+            onTap: () {
+               final locationController = context.read<LocationController>();
+      locationController.determinePosition().then((Position? position) {
+        if(position!=null){
+          final latLng = LatLng(position!.latitude, position.longitude);
+          locationController.getAddressFromLatLng(latLng, onSuuccess: (){
+            popScreen();
+            
+          }, onError: (error) {
+            
+          },);
+        }
+      });
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+              decoration: BoxDecoration(
+                color: AppColors.kLightPink.withValues(alpha: .05),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Row(
+                spacing: 10.w,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.locationArrow,
+                    color: AppColors.kAccentPink,
+                  ),
+                  CustomText(
+                    text: 'Use my current location',
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.kAccentPink,
+                    fontSize: 14.sp,
+                  ),
+                ],
+              ),
             ),
           ),
           Gap(20.h),
@@ -175,22 +369,30 @@ class LocationListView extends StatelessWidget {
                   //alignment: Alignment.bottomCenter,
                   child: Center(
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 5.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.kAccentPink,
-                        borderRadius: BorderRadius.circular(15.sp)
+                        borderRadius: BorderRadius.circular(15.sp),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         spacing: 5.w,
                         children: [
-                          Icon(Icons.map, color: AppColors.kWhite,),
-                          CustomText(text: 'View on Map', fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.kWhite,)
+                          Icon(Icons.map, color: AppColors.kWhite),
+                          CustomText(
+                            text: 'View on Map',
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.kWhite,
+                          ),
                         ],
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -338,7 +540,11 @@ class PopularCityItem extends StatelessWidget {
             color: AppColors.kWhite,
             fontWeight: FontWeight.bold,
           ),
-          CustomText(text: '18 Rental Sports', fontSize: 12.sp, color: AppColors.kDarkerGrey,)
+          CustomText(
+            text: '18 Rental Sports',
+            fontSize: 12.sp,
+            color: AppColors.kDarkerGrey,
+          ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import 'package:baba_24/presentation/screens/dashboard/RateExperince/rate_experi
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_appreciation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_info_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/booking/bookings_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/confirmation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/feedback_appreciation_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/insurance_details_screen.dart';
@@ -14,12 +15,17 @@ import 'package:baba_24/presentation/screens/dashboard/booking/social_confirmati
 import 'package:baba_24/presentation/screens/dashboard/bottom_nav_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/brands/all_brands_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/car_details_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/cars/compare_car_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/price_details_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/cars/saved_cars_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/date/date_time_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/driver/additional_driver_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/driver/driver_eligibility_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/filter/filter_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/kyc/document_approval_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/document_rejection_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/document_verification_status_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/kyc/identity_verification_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/location/location_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/notification/notification_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/payment/payment_history_screen.dart';
@@ -32,6 +38,8 @@ import 'package:baba_24/presentation/screens/dashboard/promotion/promotion_scree
 import 'package:baba_24/presentation/screens/dashboard/rewards/all_rewards_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/rewards/loyalty_rewards_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/account_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/address/add_address_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/address/address_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/fee/fee_transparency_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/fee/security_deposit_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/contact_support_screen.dart';
@@ -43,9 +51,12 @@ import 'package:baba_24/presentation/screens/dashboard/settings/help/road_assist
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_center_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_faq_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/help/tawk_chat_page.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/trust_safety_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/languageCurrency/language_currency_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/security/security_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/trip/extra_trip_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/wallet/wallet_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/onboarding_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -102,6 +113,16 @@ class AppRoutes {
   static const String documentApprovalStatus = '/documentApprovalStatus';
   static const String refundPolicy = '/refundPolicy';
   static const String bookingStatus = '/bookingStatus';
+  static const String identity = '/identity';
+  static const String documentRejection = '/documentRejection';
+  static const String compareCars = '/compareCars';
+  static const String documentVerificationProgress = '/documentVerificationProgress';
+  static const String additionalDriver = '/additionalDriver';
+  static const String bookings = '/bookings';
+  static const String languageCurrency = '/languageCurrency';
+  static const String addresses = '/addresses';
+  static const String addAddress = '/addAddress';
+  static const String liveChat = '/liveChat';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -254,7 +275,40 @@ class AppRoutes {
             builder: (_) =>  RefundPolicyScreen(), settings: settings);  
   case bookingStatus:
         return MaterialPageRoute(
-            builder: (_) =>  BookingStatusScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            builder: (_) =>  BookingStatusScreen(), settings: settings);  
+    case identity:
+        return MaterialPageRoute(
+            builder: (_) =>  IdentityVerificationScreen(), settings: settings);
+    case documentRejection:
+        return MaterialPageRoute(
+            builder: (_) =>  DocumentRejectionScreen(), settings: settings); 
+    case wallet:
+        return MaterialPageRoute(
+            builder: (_) =>  WalletScreen(), settings: settings);  
+    case compareCars:
+        return MaterialPageRoute(
+            builder: (_) =>  CompareClassScreen(), settings: settings);
+    case documentVerificationProgress:
+        return MaterialPageRoute(
+            builder: (_) =>  VerificationProgressScreen(), settings: settings); 
+    case additionalDriver:
+        return MaterialPageRoute(
+            builder: (_) =>  AdditionalDriversScreen(), settings: settings);   
+    case bookings:
+        return MaterialPageRoute(
+            builder: (_) =>  BookingsScreen(), settings: settings);     
+    case languageCurrency:
+        return MaterialPageRoute(
+            builder: (_) =>  LanguageCurrencyScreen(), settings: settings);  
+   case addresses:
+        return MaterialPageRoute(
+            builder: (_) =>  AddressSettingsScreen(), settings: settings);    
+            case addAddress:
+        return MaterialPageRoute(
+            builder: (_) =>  AddAddressScreen(), settings: settings); 
+      case liveChat:
+        return MaterialPageRoute(
+            builder: (_) =>  TawkChatPage(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -1,5 +1,7 @@
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/data/controller/booking/booking_controller.dart';
+import 'package:baba_24/data/controller/location_controller.dart';
+import 'package:baba_24/presentation/screens/dashboard/location/location_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
 import 'package:baba_24/presentation/widgets/custom_button.dart';
@@ -12,7 +14,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class BookingInfoScreen extends StatelessWidget {
   const BookingInfoScreen({super.key});
@@ -354,105 +355,128 @@ class BookingLocationDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 24.h),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
-        decoration: BoxDecoration(
-          boxShadow: [BoxShadow(blurRadius: 10, color: Colors.white)],
-          borderRadius: BorderRadius.circular(20.r),
-          color: AppColors.kWhite,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-            CustomText(
-              text: 'Pick-up & Drop-off Dates',
-              fontWeight: FontWeight.w600,
+    return Consumer<LocationController>(
+      builder: (context, controller, child) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 24.h),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
+            decoration: BoxDecoration(
+              boxShadow: [BoxShadow(blurRadius: 10, color: Colors.white)],
+              borderRadius: BorderRadius.circular(20.r),
+              color: AppColors.kWhite,
             ),
-            Gap(10.h),
-            CustomText(
-              text:
-                  'Select your pickup and drop-off dates using the range calendar below',
-              fontSize: 12.sp,
-              color: AppColors.kBlack.withValues(alpha: .5),
-            ),
-            Gap(20.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                color: AppColors.kWhite,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              width: double.infinity,
-              child: Row(
-                spacing: 10.w,
-                children: [
-                  Icon(Icons.calendar_month_outlined, color: AppColors.kGrey),
-                  CustomText(
-                    text: 'Jan 14, 02:09AM - Jan 24, 05:12AM',
-                    fontSize: 13.sp,
-                  ),
-                ],
-              ),
-            ),
-            Gap(20.h),
-            BookingInfoSelector(
-              firstText: 'Bring the car to me',
-              secText: 'Select delivery address',
-            ),
-            Gap(20.h),
-            BookingInfoSelector(
-              firstText: 'Bring the car to me',
-              secText: 'Select delivery address',
-            ),
-            Gap(20.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+        
               children: [
                 CustomText(
-                  text: 'Return to the same location',
-                  fontSize: 14.sp,
+                  text: 'Pick-up & Drop-off Dates',
+                  fontWeight: FontWeight.w600,
                 ),
-                Transform.scale(
-                  alignment: Alignment.centerRight,
-                  scale: 0.8,
-                  child: Switch(
-                    value: true,
-                    activeColor: AppColors.kWhite,
-                    activeTrackColor: AppColors.kLightPink,
-                    onChanged: (value) {
-                      // showSnackBar(context, 'Light mode is coming soon');
-                      return;
-                    },
+                Gap(10.h),
+                CustomText(
+                  text:
+                      'Select your pickup and drop-off dates using the range calendar below',
+                  fontSize: 12.sp,
+                  color: AppColors.kBlack.withValues(alpha: .5),
+                ),
+                Gap(20.h),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.kWhite,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  width: double.infinity,
+                  child: Row(
+                    spacing: 10.w,
+                    children: [
+                      Icon(Icons.calendar_month_outlined, color: AppColors.kGrey),
+                      CustomText(
+                        text: 'Jan 14, 02:09AM - Jan 24, 05:12AM',
+                        fontSize: 13.sp,
+                      ),
+                    ],
                   ),
                 ),
+                Gap(20.h),
+                BookingInfoSelector(
+                  firstText: 'Bring the car to me',
+                  secText: controller.currentAddress.isNotEmpty? controller.currentAddress: 'Select delivery address',
+                  isSelected: controller.bringTheCarToMe,
+                  onTap: () {
+                     showDialog(context: context, builder: (context){
+                      return Container(
+                        height: 400,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.r)
+                        ),
+                       // insetPadding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: MapView(),
+                      );
+                    });
+                  },
+                ),
+                Gap(20.h),
+                BookingInfoSelector(
+                  firstText: 'Free pickup locations',
+                  secText: 'Select a free pickup location',
+                  isSelected: !controller.bringTheCarToMe,
+                  onTap: () {
+                    showDialog(context: context, builder: (context){
+                      return Dialog();
+                    });
+                  },
+                ),
+                Gap(20.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      text: 'Return to the same location',
+                      fontSize: 14.sp,
+                    ),
+                    Transform.scale(
+                      alignment: Alignment.centerRight,
+                      scale: 0.8,
+                      child: Switch(
+                        value: true,
+                        activeColor: AppColors.kWhite,
+                        activeTrackColor: AppColors.kLightPink,
+                        onChanged: (value) {
+                          // showSnackBar(context, 'Light mode is coming soon');
+                          return;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                Divider(color: AppColors.kGrey.withValues(alpha: .5)),
+                Gap(10.h),
+                Column(
+                  spacing: 10.h,
+                  children: [
+                    SummaryItem(
+                      text: 'Rental price for 10 days',
+                      value: '\$30,000',
+                    ),
+                    SummaryItem(text: '5% Discount', value: '-\$3000'),
+                    SummaryItem(
+                      text: 'Rental price for 10 days',
+                      value: '\$25,000',
+                      valueSize: 15.sp,
+                      valueColor: AppColors.kAccentPink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SummaryItem(text: '10 days × \$208', value: '=\$2,000'),
+                  ],
+                ),
               ],
             ),
-            Divider(color: AppColors.kGrey.withValues(alpha: .5)),
-            Gap(10.h),
-            Column(
-              spacing: 10.h,
-              children: [
-                SummaryItem(
-                  text: 'Rental price for 10 days',
-                  value: '\$30,000',
-                ),
-                SummaryItem(text: '5% Discount', value: '-\$3000'),
-                SummaryItem(
-                  text: 'Rental price for 10 days',
-                  value: '\$25,000',
-                  valueSize: 15.sp,
-                  valueColor: AppColors.kAccentPink,
-                  fontWeight: FontWeight.w700,
-                ),
-                SummaryItem(text: '10 days × \$208', value: '=\$2,000'),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 }
@@ -499,47 +523,56 @@ class BookingInfoSelector extends StatelessWidget {
     super.key,
     required this.firstText,
     required this.secText,
+    required this.isSelected,
+    required this.onTap
   });
 
   final String firstText;
   final String secText;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.kAccentPink),
-        borderRadius: BorderRadius.circular(10.r),
-        color: AppColors.kWhite,
-      ),
-      child: Row(
-        spacing: 10.w,
-        children: [
-          Icon(
-            FontAwesomeIcons.locationDot,
-            color: AppColors.kAccentPink,
-            size: 20.sp,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 2.h,
-            children: [
-              CustomText(
-                text: firstText,
-                color: AppColors.kAccentPink,
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+        decoration: BoxDecoration(
+          border: Border.all(color: isSelected? AppColors.kAccentPink : Colors.transparent),
+          borderRadius: BorderRadius.circular(10.r),
+          color: AppColors.kWhite,
+        ),
+        child: Row(
+          spacing: 10.w,
+          children: [
+            Icon(
+              FontAwesomeIcons.locationDot,
+              color: AppColors.kAccentPink,
+              size: 20.sp,
+            ),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 2.h,
+                children: [
+                  CustomText(
+                    text: firstText,
+                    color: AppColors.kAccentPink,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  CustomText(
+                    text: secText,
+                    color: AppColors.kAccentPink,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ],
               ),
-              CustomText(
-                text: secText,
-                color: AppColors.kAccentPink,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w300,
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

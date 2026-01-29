@@ -1,6 +1,5 @@
 import 'package:baba_24/presentation/screens/dashboard/home/home_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
-import 'package:baba_24/presentation/widgets/custom_button.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
 import 'package:flutter/material.dart';

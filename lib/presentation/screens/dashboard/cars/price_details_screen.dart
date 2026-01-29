@@ -132,19 +132,21 @@ class PriceBreakdownItem extends StatelessWidget {
     this.textColor,
     this.hasDivider = true,
     this.secTextColor,
-    this.textFontWeight
+    this.textFontWeight,
+    this.hasMargin = true
   });
   final String text;
   final String price;
   final String? secText;
   final Color? textColor;
   final bool hasDivider;
+  final bool hasMargin;
   final Color? secTextColor;
   final FontWeight? textFontWeight;
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 15.h),
+      padding: hasMargin? EdgeInsets.symmetric(vertical: 15.h): EdgeInsets.zero,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
