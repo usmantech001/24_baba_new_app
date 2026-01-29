@@ -4,6 +4,7 @@ import 'package:baba_24/presentation/screens/dashboard/booking/bookings_screen.d
 import 'package:baba_24/presentation/screens/dashboard/cars/saved_cars_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/explore/explore_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/home_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/payment/payment_history_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/settings_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/utils/app_colors.dart';
@@ -26,11 +27,9 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     ExploreScreen(),
     BookingsScreen(),
     SavedCarsScreen(),
+    PaymentHistoryScreen(),
     SettingsScreen(),
-  //    ServicesScreen(),
-  //   HistoryScreen(),
-  //  RewardsScreen(),
-  //   SettingsTab()
+  
   ];
   int currentIndex = 0;
 
@@ -73,39 +72,21 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             items: [
               BottomNavigationBarItem(
                   icon: Icon(Icons.home),
-                // icon:   svgImage(
-                //       imgPath: 'assets/icons/inactive-home-icon.svg',),
-                //            activeIcon:   svgImage(
-                //       imgPath: 'assets/icons/active-home-icon.svg',),
                   label: 'Home'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.search),
-                  // icon:   svgImage(
-                  //     imgPath: 'assets/icons/inactive-services-icon.svg',),
-                  //          activeIcon:   svgImage(
-                  //     imgPath: 'assets/icons/active-services-icon.svg',),
                   label: 'Explore'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.event),
-                  // icon:   svgImage(
-                  //     imgPath: 'assets/icons/inactive-history-icon.svg',),
-                  //          activeIcon:   svgImage(
-                  //     imgPath: 'assets/icons/active-history-icon.svg',),
                   label: 'Bookings'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.favorite),
-                  // icon:   svgImage(
-                  //     imgPath: 'assets/icons/inactive-rewards-icon.svg',),
-                  //          activeIcon:   svgImage(
-                  //     imgPath: 'assets/icons/active-rewards-icon.svg',),
                   label: 'Favorite'),
               BottomNavigationBarItem(
+                  icon: Icon(Icons.history),
+                  label: 'Payments History'),
+                   BottomNavigationBarItem(
                   icon: Icon(Icons.settings),
-                  // svgImage(
-                  //     imgPath: AppImages.settingIcon,
-                  //     color: currentIndex == 4
-                  //         ? AppColors.kPrimaryColor
-                  //         : AppColors.kGrey66),
                   label: 'Settings'),
             ]),
       ),

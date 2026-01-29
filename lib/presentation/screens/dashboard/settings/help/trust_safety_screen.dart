@@ -1,7 +1,9 @@
+import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_appbar.dart';
 import 'package:baba_24/presentation/widgets/custom_button.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -11,6 +13,24 @@ class TrustSafetyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<IconData> icons = [
+      Icons.lock,
+      Icons.verified,
+      Icons.headset,
+      Icons.payments,
+      Icons.health_and_safety,
+      Icons.health_and_safety_outlined
+    ];
+
+    List<CertificationModel> certifications =[
+      CertificationModel(text: 'SSL Secured', description: 'Bank-grade data encryption', icon: Icons.lock),
+      CertificationModel(text: 'Verified Partner', description: 'Official licensed provider', icon: Icons.verified),
+      CertificationModel(text: '24/7 Roadside', description: 'Help whenever you need', icon: Icons.headphones),
+      CertificationModel(text: 'Money-Back', description: 'Transparent refund policy', icon: Icons.payments),
+
+      CertificationModel(text: 'Full Coverage', description: 'Premium insurance included', icon: Icons.health_and_safety),
+      CertificationModel(text: 'Fleet Health', description: 'Regular 50-point checks', icon: Icons.health_and_safety_outlined),
+    ];
     return Scaffold(
       backgroundColor: AppColors.kWhite.withValues(alpha: .95),
       appBar: CustomAppbar(title: 'Trust & Safety'),
@@ -41,9 +61,10 @@ class TrustSafetyScreen extends StatelessWidget {
             GridView.builder(
               padding: EdgeInsets.symmetric(vertical: 20.h),
               shrinkWrap: true,
-              itemCount: 10,
+              itemCount: certifications.length,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10), itemBuilder: (context, index){
+                final certification = certifications[index];
                 return Container(
                   padding: EdgeInsets.all(15.sp),
                 decoration: BoxDecoration(
@@ -60,10 +81,10 @@ class TrustSafetyScreen extends StatelessWidget {
                         color: AppColors.kAccentPink.withValues(alpha: .05),
                         borderRadius: BorderRadius.circular(10.sp)
                       ),
-                      child: Icon(Icons.lock, color: AppColors.kAccentPink,),
+                      child: Icon(certification.icon, color: AppColors.kAccentPink,),
                     ),
-                    CustomText(text: 'SSL Secured', fontWeight: FontWeight.bold, fontSize: 14.sp,),
-                    CustomText(text: 'Bank-grade data encryption', color: AppColors.kDarkerGrey.withValues(alpha: .8), fontSize: 14.sp,),
+                    CustomText(text: certification.text, fontWeight: FontWeight.bold, fontSize: 14.sp,),
+                    CustomText(text: certification.description, color: AppColors.kDarkerGrey.withValues(alpha: .8), fontSize: 14.sp,),
                   ],
                 ),
                 );
@@ -102,10 +123,20 @@ class TrustSafetyScreen extends StatelessWidget {
               ),
             ),
 
-            CustomButton(onPressed: (){}, text: 'Contact Support')
+            CustomButton(onPressed: (){
+              pushNamed(AppRoutes.contactSupport);
+            }, text: 'Contact Support')
           ],
         ),
       ),
     );
   }
+}
+
+class CertificationModel{
+  final String text;
+  final String description;
+  final IconData icon;
+  CertificationModel({required this.text, required this.description, required this.icon});
+
 }

@@ -22,6 +22,7 @@ import 'package:baba_24/presentation/screens/dashboard/date/date_time_screen.dar
 import 'package:baba_24/presentation/screens/dashboard/driver/additional_driver_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/driver/driver_eligibility_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/filter/filter_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/invoice/invoice_details_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/kyc/document_approval_status_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/kyc/document_rejection_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/kyc/document_verification_status_screen.dart';
@@ -123,6 +124,7 @@ class AppRoutes {
   static const String addresses = '/addresses';
   static const String addAddress = '/addAddress';
   static const String liveChat = '/liveChat';
+  static const String invoiceDetails = '/invoiceDetails';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -308,7 +310,10 @@ class AppRoutes {
             builder: (_) =>  AddAddressScreen(), settings: settings); 
       case liveChat:
         return MaterialPageRoute(
-            builder: (_) =>  TawkChatPage(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+            builder: (_) =>  TawkChatPage(), settings: settings); 
+      case invoiceDetails:
+        return MaterialPageRoute(
+            builder: (_) =>  InvoiceDetailsPage(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

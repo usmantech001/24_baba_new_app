@@ -26,7 +26,11 @@ class HelpSupportScreen extends StatelessWidget {
     ];
 
     final List<IconData> icons =[
-      FontAwesomeIcons.calendar
+      FontAwesomeIcons.calendar,
+      Icons.payments,
+      Icons.health_and_safety,
+      Icons.directions_car,
+      Icons.report
     ];
     return Scaffold(
       appBar: CustomAppbar(title: 'Help & Support'),
@@ -97,7 +101,7 @@ class HelpSupportScreen extends StatelessWidget {
                     icon: Icons.help,
                     text: 'CONTACT US',
                     subtext: 'Talk to our support team',
-                    onTap: () => pushNamed(AppRoutes.supportCenter),
+                    onTap: () => pushNamed(AppRoutes.contactSupport),
                   ),
                 ),
               ],
@@ -114,7 +118,7 @@ class HelpSupportScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
-                return HelpTile(title: topics[index], icon: Icons.event);
+                return HelpTile(title: topics[index], icon: icons[index]);
               },
               separatorBuilder: (context, index) => Gap(10),
               itemCount: topics.length,

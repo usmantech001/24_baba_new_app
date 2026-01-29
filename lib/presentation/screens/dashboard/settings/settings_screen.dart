@@ -121,7 +121,8 @@ class SettingsScreen extends StatelessWidget {
                
                     icon: Icons.card_giftcard,
                     iconColor: Colors.orange,
-                  ),
+                    onTap: () => pushNamed(AppRoutes.paymentMethods),
+                  ), 
                   SettingsTile(
                     title: 'Security',
                      
@@ -199,7 +200,12 @@ class SettingsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 5.h,
                 children: [
-                  
+                  SettingsTile(
+                    title: 'Emergency Support',
+                    icon: Icons.help,
+                    iconColor: Colors.teal,
+                    onTap: () => pushNamed(AppRoutes.emergencySupport),
+                  ),
                  SettingsTile(
                     title: 'Trust and Safety',
                     icon: Icons.help,

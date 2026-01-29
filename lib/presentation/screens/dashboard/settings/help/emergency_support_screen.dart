@@ -1,6 +1,7 @@
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -37,6 +38,7 @@ class EmergencySupportScreen extends StatelessWidget {
                         iconData: Icons.navigate_before,
                         bgColor: AppColors.kWhite.withValues(alpha: .4),
                         iconColor: AppColors.kWhite,
+                        onTap: () => popScreen(),
                       ),
                       CustomText(
                         text: 'Emergency Support',
