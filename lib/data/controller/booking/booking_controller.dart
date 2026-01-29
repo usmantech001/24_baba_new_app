@@ -11,4 +11,5 @@ class BookingController extends ChangeNotifier {
     pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
     notifyListeners();
   }
+  
 }

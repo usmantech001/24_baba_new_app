@@ -51,6 +51,7 @@ import 'package:baba_24/presentation/screens/dashboard/settings/help/road_assist
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_center_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_faq_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/support_screen.dart';
+import 'package:baba_24/presentation/screens/dashboard/settings/help/tawk_chat_page.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/help/trust_safety_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/languageCurrency/language_currency_screen.dart';
 import 'package:baba_24/presentation/screens/dashboard/settings/security/security_screen.dart';
@@ -121,6 +122,7 @@ class AppRoutes {
   static const String languageCurrency = '/languageCurrency';
   static const String addresses = '/addresses';
   static const String addAddress = '/addAddress';
+  static const String liveChat = '/liveChat';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -303,7 +305,10 @@ class AppRoutes {
             builder: (_) =>  AddressSettingsScreen(), settings: settings);    
             case addAddress:
         return MaterialPageRoute(
-            builder: (_) =>  AddAddressScreen(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+            builder: (_) =>  AddAddressScreen(), settings: settings); 
+      case liveChat:
+        return MaterialPageRoute(
+            builder: (_) =>  TawkChatPage(), settings: settings);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

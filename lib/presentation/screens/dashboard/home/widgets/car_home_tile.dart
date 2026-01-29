@@ -57,6 +57,7 @@ class CarHomeTile extends StatelessWidget {
                         text: 'Rent Chevrolet Trax',
                         fontWeight: FontWeight.w500,
                         maxLines: 1,
+                        fontSize: 14.sp,
                       ),
                       CustomText(
                         text: 'or similar • Sedan',

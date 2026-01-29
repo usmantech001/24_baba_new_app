@@ -1,6 +1,7 @@
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/data/controller/auth/auth_controller.dart';
 import 'package:baba_24/data/controller/booking/booking_controller.dart';
+import 'package:baba_24/data/controller/location_controller.dart';
 import 'package:baba_24/presentation/screens/onboard/onboarding_screen.dart';
 import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/nav.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => BookingController()),
+        ChangeNotifierProvider(create: (_) => LocationController()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(375, 812),

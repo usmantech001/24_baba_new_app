@@ -1,4 +1,5 @@
 import 'package:baba_24/core/app_route.dart';
+import 'package:baba_24/data/controller/location_controller.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/car_home_tile.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/section_header.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_button.dart';
@@ -13,12 +14,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final int selectedCategoryIndex = 0;
+
+  late VideoPlayerController _controller;
+  bool isPlaying = false;
+  bool isMute = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset('assets/videos/intro-video.mp4')
+      ..initialize().then((_) {
+        if (_controller.value.isInitialized) {
+          _controller.seekTo(Duration(seconds: 1));
+          _controller.play();
+          isPlaying = true;
+        }
+        setState(() {});
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final locationController = context.watch<LocationController>();
     List<String> categories = [
       "All",
       "Sedan",
@@ -28,7 +57,6 @@ class HomeScreen extends StatelessWidget {
       "Luxury",
     ];
     return Scaffold(
-     
       body: Column(
         children: [
           HomeHeader(),
@@ -44,84 +72,140 @@ class HomeScreen extends StatelessWidget {
                     // //height: deviceHeight(context) * 35,
                     child: Column(
                       children: [
-                        Image.asset(
-                          'assets/images/home-image.jpeg',
-                          width: double.infinity,
-                          fit: BoxFit.fill,
-                          height: 300,
-                        ),
-            
-                    
-                         
-                        Container(
-                            // height: 200.h,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
-                              vertical: 20.h,
-                            ),
-                            // margin: EdgeInsets.symmetric(horizontal: 30),
-                            width: deviceWidth(context),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20.r),
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  offset: Offset(3, 3),
-                                  color: Colors.grey.withValues(alpha: .2),
-                                ),
-                                BoxShadow(
-                                  offset: Offset(-3, -3),
-                                  color: Colors.grey.withValues(alpha: .2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              spacing: 10,
-                              children: [
-                                HomeSelector(
-                                  icon: FontAwesomeIcons.locationDot,
-                                  title: 'PICK UP YOUR LOCATION',
-                                  value: 'Where are you going ?',
-                                  onTap: () {
-                                    pushNamed(AppRoutes.location);
-                                  },
-                                ),
-                                Row(
-                                  spacing: 10.w,
+                        _controller.value.isInitialized
+                            ? AspectRatio(
+                                aspectRatio: _controller.value.aspectRatio,
+                                child: Stack(
                                   children: [
-                                    Expanded(
-                                      child: HomeSelector(
-                                        icon: Icons.calendar_month,
-                                        title: 'START DATE',
-                                        value: 'OCT 12, 10:00',
-                                        valueColor: AppColors.kBlack,
+                                    VideoPlayer(_controller),
+                                    Positioned(
+                                      right: 10,
+                                      top: 10,
+                                      child: InkWell(
                                         onTap: () {
-                                          pushNamed(AppRoutes.dateTime);
+                                          if (isMute) {
+                                            _controller.seekTo(
+                                              Duration(seconds: 1),
+                                            );
+                                            _controller.setVolume(1);
+                                            _controller.play();
+                                            isMute = false;
+
+                                            setState(() {});
+                                          } else {
+                                            _controller.setVolume(0.0);
+                                            isMute = true;
+                                            setState(() {});
+                                          }
                                         },
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: HomeSelector(
-                                        icon: Icons.calendar_month,
-                                        title: 'END DATE',
-                                        value: 'OCT 12, 10:00',
-                                        valueColor: AppColors.kBlack,
-                                        onTap: () {
-                                          pushNamed(AppRoutes.dateTime);
-                                        },
+                                        child: CustomIcon(
+                                          iconData: isMute
+                                              ? Icons.volume_off
+                                              : Icons.volume_up,
+                                          bgColor: AppColors.kWhite,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                AppButton(
-                                  isLoading: false,
-                                  onPressed: () {},
-                                  text: 'Search your perfect ride',
-                                ),
-                              ],
-                            ),
+                              )
+                            : Container(),
+
+                        Container(
+                          // height: 200.h,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 20.h,
                           ),
-                        
+                          // margin: EdgeInsets.symmetric(horizontal: 30),
+                          width: deviceWidth(context),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.r),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                offset: Offset(3, 3),
+                                color: Colors.grey.withValues(alpha: .2),
+                              ),
+                              BoxShadow(
+                                offset: Offset(-3, -3),
+                                color: Colors.grey.withValues(alpha: .2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            spacing: 10,
+                            children: [
+                              HomeSelector(
+                                icon: FontAwesomeIcons.locationDot,
+                                title:
+                                    locationController.currentAddress.isNotEmpty
+                                    ? 'YOUR PICK UP LOCATION'
+                                    : 'PICK UP YOUR LOCATION',
+                                value:
+                                    locationController.currentAddress.isNotEmpty
+                                    ? locationController.currentAddress
+                                    : 'Where are you going ?',
+                                onTap: () {
+                                  pushNamed(AppRoutes.location);
+                                },
+                              ),
+                              Row(
+                                spacing: 10.w,
+                                children: [
+                                  Expanded(
+                                    child: HomeSelector(
+                                      icon: Icons.calendar_month,
+                                      title: 'START DATE',
+                                      value: 'OCT 12, 10:00',
+                                      valueColor: AppColors.kBlack,
+                                      onTap: () {
+                                        pushNamed(AppRoutes.dateTime);
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: HomeSelector(
+                                      icon: Icons.calendar_month,
+                                      title: 'END DATE',
+                                      value: 'OCT 12, 10:00',
+                                      valueColor: AppColors.kBlack,
+                                      onTap: () {
+                                        pushNamed(AppRoutes.dateTime);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(vertical: 10.h),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  color: AppColors.kAccentPink,
+                                ),
+                                child: Row(
+                                  spacing: 10.w,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.search, color: AppColors.kWhite),
+                                    CustomText(
+                                      text: 'Search',
+                                      color: AppColors.kWhite,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // AppButton(
+                              //   isLoading: false,
+                              //   onPressed: () {},
+                              //   text: 'Search ',
+
+                              // ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -166,77 +250,106 @@ class HomeScreen extends StatelessWidget {
                   ),
                   */
                   Gap(40.h),
-                  SectionHeader(text: 'Categories', onTap: () => null),
+                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  // // SingleChildScrollView(
+                  // //   padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
+                  // //   physics: const BouncingScrollPhysics(),
+                  // //   scrollDirection: Axis.horizontal,
+                  // //   child: Row(
+                  // //     spacing: 10,
+                  // //     children: List.generate(categories.length, (index) {
+                  // //       return CategoryTile(
+                  // //         text: categories[index],
+                  // //         isSelected: selectedCategoryIndex == index,
+                  // //       );
+                  // //     }),
+                  // //   ),
+                  // // ),
+
+                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  /*
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       spacing: 10,
-                      children: List.generate(categories.length, (index) {
-                        return CategoryTile(
-                          text: categories[index],
-                          isSelected: selectedCategoryIndex == index,
+                      children: List.generate(10, (index) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                          //width: 50.w,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.kDarkerGrey.withValues(alpha: .1)
+                            ),
+                            borderRadius: BorderRadius.circular(10.r)
+                          ),
+                          child: Column(
+                            spacing: 8,
+                            children: [
+                              CircleAvatar(
+                                child: Image.asset('assets/images/bmw_logo.png'),
+                              ),
+                              CustomText(text: 'CHEVROLET', maxLines: 2, fontSize: 12.sp, fontWeight: FontWeight.w600,),
+                              CustomText(text: '225', fontSize: 12.sp, color: AppColors.kDarkerGrey,)
+                            ],
+                          ),
                         );
                       }),
                     ),
                   ),
-            
-                  // SectionHeader(text: 'All Brands', onTap: () => null),
-                  // SingleChildScrollView(
-                  //   padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
-                  //   physics: const BouncingScrollPhysics(),
-                  //   scrollDirection: Axis.horizontal,
-                  //   child: Row(
-                  //     spacing: 10,
-                  //     children: List.generate(10, (index) {
-                  //       return SizedBox(
-                  //         width: 50.w,
-                  //         child: Column(
-                  //           spacing: 8,
-                  //           children: [
-                  //             CircleAvatar(
-                  //               child: Image.asset('assets/images/bmw_logo.png'),
-                  //             ),
-                  //             CustomText(text: 'BMW', maxLines: 2, fontSize: 12),
-                  //           ],
-                  //         ),
-                  //       );
-                  //     }),
-                  //   ),
-                  // ),
+                  */
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 15.w),
                     child: Column(
                       spacing: 10.h,
                       children: [
-                        GridView.builder(
-                          shrinkWrap: true,
-                          itemCount: 4,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            childAspectRatio: 3,
-                            mainAxisSpacing: 10.h,
-                            crossAxisSpacing: 10.w,
-                            crossAxisCount: 2,
+                        MediaQuery.removePadding(
+                          removeTop: true,
+                          context: context,
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            itemCount: 6,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  childAspectRatio: 3,
+                                  mainAxisSpacing: 10.h,
+                                  crossAxisSpacing: 10.w,
+                                  crossAxisCount: 2,
+                                ),
+                            itemBuilder: (context, index) {
+                              return BrandTile(name: 'BMW', img: 'bmw_logo');
+                            },
                           ),
-                          itemBuilder: (context, index) {
-                            return BrandTile(name: 'BMW', img: 'bmw_logo');
-                          },
                         ),
-            
+
                         InkWell(
                           onTap: () => pushNamed(AppRoutes.allBrands),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomText(
-                                text: 'All Brands',
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.kAccentPink,
-                              ),
-                              Icon(Icons.navigate_next, color: AppColors.kAccentPink),
-                            ],
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 10.h,
+                              horizontal: 10.w,
+                            ),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15.r),
+                              color: Colors.grey.withValues(alpha: .07),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CustomText(
+                                  text: 'All Brands',
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.kAccentPink,
+                                ),
+                                Icon(
+                                  Icons.navigate_next,
+                                  color: AppColors.kAccentPink,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -249,12 +362,15 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Gap(20.h),
                   SectionHeader(
-                    text: 'Smart Picks',
-                    shortDesc: 'Premium Cars at great prices',
+                    text: 'Standard Cars',
+                  //  shortDesc: 'Premium Cars at great prices',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 15.w,
+                      vertical: 20.h,
+                    ),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -264,15 +380,18 @@ class HomeScreen extends StatelessWidget {
                       }),
                     ),
                   ),
-            
+
                   Gap(20.h),
                   SectionHeader(
                     text: 'Electric Cars',
-                    shortDesc: 'Eco-friendly and modern electric vehicles',
+                   // shortDesc: 'Eco-friendly and modern electric vehicles',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 15.w,
+                      vertical: 20.h,
+                    ),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -285,11 +404,14 @@ class HomeScreen extends StatelessWidget {
                   Gap(20.h),
                   SectionHeader(
                     text: 'Business Class Cars',
-                    shortDesc: 'Professional vehicles for business and comfort',
+                   // shortDesc: 'Professional vehicles for business and comfort',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 15.w,
+                      vertical: 20.h,
+                    ),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -299,17 +421,17 @@ class HomeScreen extends StatelessWidget {
                       }),
                     ),
                   ),
-            
+
                   SectionHeader(
                     text: 'Promotion',
-                    shortDesc: 'Professional vehicles for business and comfort',
+                    //shortDesc: 'Professional vehicles for business and comfort',
                     onTap: () => pushNamed(AppRoutes.promotion),
                     suffixText: 'View All',
                   ),
                   Gap(20),
                   CarouselSlider.builder(
                     itemCount: 3,
-            
+
                     itemBuilder: (context, index, _) {
                       String imageUrl =
                           "https://oui4bvk5eo1qol4e.public.blob.vercel-storage.com/cars/draft-1763901772909-935-cqjm7e04n/1764062571004-01-image.webp.jpg";
@@ -337,7 +459,7 @@ class HomeScreen extends StatelessWidget {
                     },
                     options: CarouselOptions(
                       viewportFraction: 1,
-            
+
                       height: 150,
                       autoPlay: true,
                     ),
@@ -382,25 +504,29 @@ class HomeSelector extends StatelessWidget {
           spacing: 10.w,
           children: [
             Icon(icon, color: AppColors.kAccentPink, size: 15.sp),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  text: title,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.kAccentPink,
-                ),
-                CustomText(
-                  text: value,
-                  color:
-                      valueColor ?? AppColors.kLightPink.withValues(alpha: .5),
-                  fontSize: 11.sp,
-                  fontWeight: valueColor != null
-                      ? FontWeight.w600
-                      : FontWeight.w400,
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: title,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.kAccentPink,
+                  ),
+                  CustomText(
+                    text: value,
+                    color:
+                        valueColor ??
+                        AppColors.kLightPink.withValues(alpha: .5),
+                    fontSize: 11.sp,
+                    fontWeight: valueColor != null
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -458,69 +584,62 @@ class BrandTile extends StatelessWidget {
   }
 }
 
-
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return  SafeArea(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-            //color: Colors.red,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  spacing: 10.w,
-                  children: [
-                    Image.asset('assets/images/logo.png', height: 50,),
-                 
-                  ],
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 5.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.kGrey.withValues(alpha: .2),
-                    borderRadius: BorderRadius.circular(15.sp),
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     offset: Offset(3, 3),
-                    //     color: Colors.grey.withValues(alpha: .2),
-                    //   ),
-                    //   BoxShadow(
-                    //     offset: Offset(-3, -3),
-                    //    // color: Colors.grey.withValues(alpha: .2),
-                    //   ),
-                    // ],
-                  ),
-                  child: Row(
-                    spacing: 10.w,
-                    children: [
-                      CustomIcon(
-                        iconData: Icons.language,
-                        onTap: () => pushNamed(AppRoutes.notifications),
-                        bgColor: AppColors.kWhite,
-                      ),
-                      CustomIcon(
-                        iconData: Icons.bedtime_rounded,
-                        onTap: () => pushNamed(AppRoutes.notifications),
-                        bgColor: AppColors.kWhite,
-                      ),
-                      CustomIcon(
-                        iconData: Icons.notifications_outlined,
-                        onTap: () => pushNamed(AppRoutes.notifications),
-                        bgColor: AppColors.kWhite,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return SafeArea(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+        //color: Colors.red,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              spacing: 10.w,
+              children: [Image.asset('assets/images/logo.png', height: 50)],
             ),
-          ),
-        );
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+              decoration: BoxDecoration(
+                color: AppColors.kGrey.withValues(alpha: .2),
+                borderRadius: BorderRadius.circular(15.sp),
+                // boxShadow: [
+                //   BoxShadow(
+                //     offset: Offset(3, 3),
+                //     color: Colors.grey.withValues(alpha: .2),
+                //   ),
+                //   BoxShadow(
+                //     offset: Offset(-3, -3),
+                //    // color: Colors.grey.withValues(alpha: .2),
+                //   ),
+                // ],
+              ),
+              child: Row(
+                spacing: 10.w,
+                children: [
+                  CustomIcon(
+                    iconData: Icons.language,
+                    onTap: () => pushNamed(AppRoutes.notifications),
+                    bgColor: AppColors.kWhite,
+                  ),
+                  CustomIcon(
+                    iconData: Icons.bedtime_rounded,
+                    onTap: () => pushNamed(AppRoutes.notifications),
+                    bgColor: AppColors.kWhite,
+                  ),
+                  CustomIcon(
+                    iconData: Icons.notifications_outlined,
+                    onTap: () => pushNamed(AppRoutes.notifications),
+                    bgColor: AppColors.kWhite,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
