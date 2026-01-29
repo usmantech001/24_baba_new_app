@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late VideoPlayerController _controller;
   bool isPlaying = false;
-  bool isMute = false;
+  bool isMute = true;
 
   @override
   void initState() {
@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_controller.value.isInitialized) {
           _controller.seekTo(Duration(seconds: 1));
           _controller.play();
+          _controller.setVolume(0.0);
           isPlaying = true;
         }
         setState(() {});
