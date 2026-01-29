@@ -9,6 +9,7 @@ import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class HelpSupportScreen extends StatelessWidget {
@@ -22,6 +23,10 @@ class HelpSupportScreen extends StatelessWidget {
       'Insurance & Coverage',
       'Vehicle Pickup & Drop-off',
       'Report Damage',
+    ];
+
+    final List<IconData> icons =[
+      FontAwesomeIcons.calendar
     ];
     return Scaffold(
       appBar: CustomAppbar(title: 'Help & Support'),
