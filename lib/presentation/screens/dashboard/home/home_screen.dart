@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoadingUser = true;
   bool _hasFetchedUser = false;
 
-  late VideoPlayerController _controller;
+  late final VideoPlayerController _controller;
   bool isPlaying = false;
   bool isMute = true;
   // 🔹 Brands
@@ -62,6 +62,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _controller = VideoPlayerController.asset('assets/videos/intro-video.mp4')
+      ..initialize().then((_) {
+        if (_controller.value.isInitialized) {
+          _controller.seekTo(Duration(seconds: 1));
+          _controller.play();
+          _controller.setVolume(0.0);
+          isPlaying = true;
+        }
+        setState(() {});
+      });
+
     _loadUserOnce();
     _fetchBrands();
     _loadUserFavorites();
@@ -543,23 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Gap(40.h),
-                  // SectionHeader(text: 'All Brands', onTap: () => null),
-                  // // SingleChildScrollView(
-                  // //   padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
-                  // //   physics: const BouncingScrollPhysics(),
-                  // //   scrollDirection: Axis.horizontal,
-                  // //   child: Row(
-                  // //     spacing: 10,
-                  // //     children: List.generate(categories.length, (index) {
-                  // //       return CategoryTile(
-                  // //         text: categories[index],
-                  // //         isSelected: selectedCategoryIndex == index,
-                  // //       );
-                  // //     }),
-                  // //   ),
-                  // // ),
-
-                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  SectionHeader(text: 'All Brands', onTap: () => null),
                   /*
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
@@ -621,6 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                   ),
+                  Gap(20.h),
                   InkWell(
                     onTap: () => pushNamed(AppRoutes.allBrands),
                     child: Row(
@@ -788,64 +784,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class BrandTile extends StatelessWidget {
-  const BrandTile({
-    super.key,
-    required this.name,
-    required this.img,
-    this.isNetwork = false,
-  });
-  final String name;
-  final String img;
-  final bool isNetwork;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.r),
-        // color: Colors.grey.withOpacity(.07),r
-      ),
-      child: Row(
-        spacing: 10.w,
-        children: [
-          isNetwork
-              ?
-                // CachedNetworkImage(
-                //     imageUrl: img,
-                //     width: 30.w,
-                //     height: 30.h,
-                //     placeholder: (context, url) =>
-                //         const CircularProgressIndicator(strokeWidth: 2),
-                //     errorWidget: (context, url, error) => const Icon(Icons.error),
-                //   )
-                ColorFiltered(
-                  colorFilter: const ColorFilter.mode(
-                    Colors.transparent,
-                    BlendMode.dst, // preserves alpha exactly
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: img,
-                    width: 30.w,
-                    height: 30.h,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              : Image.asset(
-                  'assets/images/$img.png',
-                  width: 30.w,
-                  height: 30.h,
-                  fit: BoxFit.cover,
-                ),
-          CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
-        ],
-      ),
-    );
-  }
-}
-
 class HomeSelector extends StatelessWidget {
   const HomeSelector({
     super.key,
@@ -929,31 +867,6 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
-// class BrandTile extends StatelessWidget {
-//   const BrandTile({super.key, required this.name, required this.img});
-//   final String name;
-//   final String img;
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       //width: deviceWidth(context),
-//       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
-//       alignment: Alignment.center,
-//       decoration: BoxDecoration(
-//         borderRadius: BorderRadius.circular(15.r),
-//         color: Colors.grey.withValues(alpha: .07),
-//       ),
-//       child: Row(
-//         spacing: 10.w,
-//         children: [
-//           Image.asset('assets/images/$img.png', height: 30.h, width: 30.w),
-//           CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 class HomeHeader extends StatelessWidget {
   final Map<String, dynamic>? currentUser;
   final bool isLoadingUser;
@@ -1010,6 +923,43 @@ class HomeHeader extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class BrandTile extends StatelessWidget {
+  const BrandTile({
+    super.key,
+    required this.name,
+    required this.img,
+    this.isNetwork = false,
+  });
+  final String name;
+  final String img;
+  final bool isNetwork;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      //width: deviceWidth(context),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.r),
+        color: Colors.grey.withValues(alpha: .07),
+      ),
+      child: Row(
+        spacing: 10.w,
+        children: [
+          CachedNetworkImage(
+            imageUrl: img,
+            width: 30.w,
+            height: 30.h,
+            fit: BoxFit.cover,
+          ),
+          CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
+        ],
       ),
     );
   }
