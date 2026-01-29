@@ -1,19 +1,112 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/presentation/screens/dashboard/booking/booking_info_screen.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
 import 'package:baba_24/utils/nav.dart';
-import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:gap/gap.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  Map<String, dynamic>? currentUser;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userString = prefs.getString('current_user');
+
+    if (userString != null) {
+      setState(() {
+        currentUser = jsonDecode(userString);
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        currentUser = null;
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    await prefs.remove('current_user');
+    await prefs.remove('auth_token');
+
+    if (token == null) {
+      removeAllAndPushScreen(AppRoutes.signInSIgnUp);
+      return;
+    }
+
+    final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+    final updatedURL = '$baseURL/auth/logout';
+
+    try {
+      final response = await http.post(
+        Uri.parse(updatedURL),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && decoded['success'] == true) {
+        await prefs.remove('auth_token');
+        await prefs.remove('current_user');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] ?? 'Logged out successfully'),
+            backgroundColor: AppColors.kAccentPink,
+          ),
+        );
+        removeAllAndPushScreen(AppRoutes.signInSIgnUp);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] ?? 'Logout failed'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network error. Please try again.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final fullName = currentUser?['fullName'] ?? 'Loading...';
+    final email = currentUser?['email'] ?? 'Loading...';
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.kWhite,
@@ -29,7 +122,6 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 children: [
                   DottedBorder(
-                    //color: Colors.red,
                     options: CircularDottedBorderOptions(
                       dashPattern: [5, 5],
                       color: AppColors.kAccentPink,
@@ -38,9 +130,7 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundColor: AppColors.kGrey.withValues(
-                            alpha: .2,
-                          ),
+                          backgroundColor: AppColors.kGrey.withOpacity(.2),
                         ),
                         Positioned(
                           bottom: 0,
@@ -58,15 +148,15 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   Gap(15.h),
                   CustomText(
-                    text: 'Ali Ahmad',
+                    text: fullName,
                     fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                   ),
-                   CustomText(
-                    text: 'faiz@gmail.com',
+                  CustomText(
+                    text: email,
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.kBlack.withValues(alpha: .3),
+                    color: AppColors.kBlack.withOpacity(.3),
                   ),
                 ],
               ),
@@ -75,36 +165,35 @@ class SettingsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                SettingsBox(text: 'Favorite', icon: Icons.favorite_outline, onTap: () {
-                  pushNamed(AppRoutes.savedCars);
-                },),
-                SettingsBox(text: 'Schedule', icon: Icons.calendar_month, onTap: () {
-                 // pushNamed(AppRoutes.savedCars);
-                },),
-                SettingsBox(text: 'Booking', icon: Icons.book_online, onTap: () {
-                  pushNamed(AppRoutes.bookings);
-                },),
+                SettingsBox(
+                  text: 'Favorite',
+                  icon: Icons.favorite_outline,
+                  onTap: () {
+                    pushNamed(AppRoutes.savedCars);
+                  },
+                ),
+                SettingsBox(
+                  text: 'Schedule',
+                  icon: Icons.calendar_month,
+                  onTap: () {
+                    // pushNamed(AppRoutes.savedCars);
+                  },
+                ),
+                SettingsBox(
+                  text: 'Booking',
+                  icon: Icons.book_online,
+                  onTap: () {
+                    pushNamed(AppRoutes.bookings);
+                  },
+                ),
               ],
             ),
-             Gap(30.h),
-            // CustomText(text: 'ACCOUNT', color: AppColors.kGrey),
-            //Gap(15.h),
+            Gap(30.h),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
               decoration: BoxDecoration(
-                   color: AppColors.kGrey.withValues(alpha: .1),
-                   borderRadius: BorderRadius.circular(20.r),
-                  //  boxShadow: [
-                  //     BoxShadow(
-                  //       offset: Offset(3, 3),
-                  //       color: Colors.white,
-                  //     ),
-                  //     BoxShadow(
-                  //       offset: Offset(-3, -3),
-                  //      color: Colors.white,
-                  //     ),
-                  //   ],
-
+                color: AppColors.kGrey.withOpacity(.1),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,27 +207,23 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   SettingsTile(
                     title: 'Payment Methods',
-               
                     icon: Icons.card_giftcard,
                     iconColor: Colors.orange,
-                    onTap: () => pushNamed(AppRoutes.paymentMethods),
-                  ), 
+                  ),
                   SettingsTile(
                     title: 'Security',
-                     
                     icon: Icons.lock,
                     iconColor: AppColors.kAccentGreen,
                     onTap: () => pushNamed(AppRoutes.security),
                   ),
-                   SettingsTile(
-                  title: 'KYC',
-                  icon: Icons.language,
-                  iconColor: Colors.orange,
-                  onTap: () => pushNamed(AppRoutes.identity),
-                ),
+                  SettingsTile(
+                    title: 'KYC',
+                    icon: Icons.language,
+                    iconColor: Colors.orange,
+                    onTap: () => pushNamed(AppRoutes.identity),
+                  ),
                   SettingsTile(
                     title: 'Loyalty & Rewards',
-                    //shortDesc: 'Earn points on every booking',
                     icon: Icons.card_giftcard,
                     iconColor: Colors.orange,
                     onTap: () => pushNamed(AppRoutes.rewards),
@@ -154,59 +239,37 @@ class SettingsScreen extends StatelessWidget {
                         value: true,
                         activeColor: AppColors.kWhite,
                         activeTrackColor: AppColors.kLightPink,
-                        onChanged: (value) {
-                          //showSnackBar(context, 'Light mode is coming soon');
-                          return;
-                        },
+                        onChanged: (value) {},
                       ),
                     ),
                   ),
                   SettingsTile(
-                  title: 'Language',
-                  icon: Icons.language,
-                  iconColor: Colors.orange,
-                  onTap: () => pushNamed(AppRoutes.languageCurrency),
-                ),
-                SettingsTile(
-                  title: 'My Address',
-                  icon: Icons.location_city,
-                  iconColor: Colors.indigo,
-                  onTap: () => pushNamed(AppRoutes.addresses),
-                ),
+                    title: 'Language',
+                    icon: Icons.language,
+                    iconColor: Colors.orange,
+                    onTap: () => pushNamed(AppRoutes.languageCurrency),
+                  ),
+                  SettingsTile(
+                    title: 'My Address',
+                    icon: Icons.location_city,
+                    iconColor: Colors.indigo,
+                    onTap: () => pushNamed(AppRoutes.addresses),
+                  ),
                 ],
               ),
             ),
-            // Gap(20.h),
-            // CustomText(text: 'Preferences', color: AppColors.kGrey),
             Gap(15.h),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
               decoration: BoxDecoration(
-                   color: AppColors.kGrey.withValues(alpha: .1),
-                   borderRadius: BorderRadius.circular(20.r),
-                  //  boxShadow: [
-                  //     BoxShadow(
-                  //       offset: Offset(3, 3),
-                  //       color: Colors.white,
-                  //     ),
-                  //     BoxShadow(
-                  //       offset: Offset(-3, -3),
-                  //      color: Colors.white,
-                  //     ),
-                  //   ],
-
+                color: AppColors.kGrey.withOpacity(.1),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 5.h,
                 children: [
                   SettingsTile(
-                    title: 'Emergency Support',
-                    icon: Icons.help,
-                    iconColor: Colors.teal,
-                    onTap: () => pushNamed(AppRoutes.emergencySupport),
-                  ),
-                 SettingsTile(
                     title: 'Trust and Safety',
                     icon: Icons.help,
                     iconColor: Colors.teal,
@@ -224,22 +287,23 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: Colors.teal,
                     onTap: () => pushNamed(AppRoutes.driverEligibility),
                   ),
-                   SettingsTile(
+                  SettingsTile(
                     title: 'Help and Support',
                     icon: Icons.help,
                     iconColor: Colors.teal,
                     onTap: () => pushNamed(AppRoutes.helpSupport),
                   ),
-                 
-                 SettingsTile(
-                  title: 'Log Out',
-                  icon: Icons.card_giftcard,
-                  iconColor: Colors.orange,
-                ),
+                  SettingsTile(
+                    title: 'Log Out',
+                    icon: Icons.logout,
+                    iconColor: Colors.orange,
+                    onTap: () async {
+                      await _handleLogout(context);
+                    },
+                  ),
                 ],
               ),
             ),
-            
           ],
         ),
       ),
@@ -265,6 +329,7 @@ class SettingsTile extends StatelessWidget {
   final Color? shortDescColor;
   final Widget? suffix;
   final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -278,10 +343,10 @@ class SettingsTile extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.kAccentPink.withValues(alpha: .1),
+                  color: iconColor.withOpacity(.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(icon, color: AppColors.kAccentPink, size: 20.sp,),
+                child: Icon(icon, color: iconColor, size: 20.sp),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,16 +359,14 @@ class SettingsTile extends StatelessWidget {
                   if (shortDesc != null)
                     CustomText(
                       text: shortDesc!,
-                      color:
-                          shortDescColor ??
-                          AppColors.kGrey.withValues(alpha: .8),
+                      color: shortDescColor ?? AppColors.kGrey.withOpacity(.8),
                       fontSize: 12.sp,
                     ),
                 ],
               ),
             ],
           ),
-          suffix ?? Icon(Icons.navigate_next, color: AppColors.kGrey),
+          suffix ?? const Icon(Icons.navigate_next, color: AppColors.kGrey),
         ],
       ),
     );
@@ -311,7 +374,12 @@ class SettingsTile extends StatelessWidget {
 }
 
 class SettingsBox extends StatelessWidget {
-  const SettingsBox({super.key, required this.text, required this.icon, required this.onTap});
+  const SettingsBox({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.onTap,
+  });
 
   final String text;
   final IconData icon;
@@ -330,7 +398,7 @@ class SettingsBox extends StatelessWidget {
         child: Column(
           spacing: 8.h,
           children: [
-            Icon(icon, color: AppColors.kAccentPink,),
+            Icon(icon, color: AppColors.kAccentPink),
             CustomText(text: text, fontSize: 12.sp),
           ],
         ),

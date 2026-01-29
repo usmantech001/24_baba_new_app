@@ -1,4 +1,3 @@
-
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
@@ -50,8 +49,7 @@ class _SplashScrrenState extends State<SplashScrren>
       body: Center(
         child: ScaleTransition(
           scale: scale.animate(controller),
-          child: Image.asset('assets/images/logo.png', width: 200.w,),
-          
+          child: Image.asset('assets/images/logo.png', width: 200.w),
         ),
       ),
     );

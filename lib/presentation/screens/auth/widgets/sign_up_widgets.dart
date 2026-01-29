@@ -1,19 +1,111 @@
-
+import 'dart:convert';
 import 'package:baba_24/data/controller/auth/auth_controller.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_button.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
+import 'package:baba_24/utils/nav.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:baba_24/core/app_route.dart';
 
 class SignUpWidget extends StatelessWidget {
   const SignUpWidget({super.key});
 
+  // ==================== SIGNUP FUNCTION ====================
+  Future<void> _handleSignUp(
+    BuildContext context,
+    AuthController controller,
+  ) async {
+    final fullName = controller.nameController.text.trim();
+    final email = controller.emailController.text.trim();
+    final phone = controller.phoneController.text.trim();
+    final password = controller.passwordController.text.trim();
+
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all fields'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading
+      controller.status = AuthStatus.loading;
+      controller.notifyListeners();
+
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+      final updatedURL = '$baseURL/auth/signup';
+
+      final url = Uri.parse(updatedURL);
+
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "fullName": fullName,
+          "email": email,
+          "phone": phone,
+          "password": password,
+          "role": "user",
+          "countryCode": "AE",
+        }),
+      );
+
+      // Hide loading
+      controller.status = AuthStatus.idle;
+      controller.notifyListeners();
+
+      final decoded = jsonDecode(response.body);
+
+      if ((response.statusCode == 201 || response.statusCode == 200) &&
+          decoded['success'] == true) {
+        // Signup successful, store the token
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', decoded['data']['accessToken']);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] ?? 'Signup successful'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to BottomNav screen
+        removeAllAndPushScreen(AppRoutes.bottomNav);
+      } else {
+        // Signup failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] ?? 'Signup failed'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      controller.status = AuthStatus.idle;
+      controller.notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Network error. Please try again.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return // Form
-        Consumer<AuthController>(
+    return Consumer<AuthController>(
       builder: (context, controller, child) {
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 15.w),
@@ -50,153 +142,15 @@ class SignUpWidget extends StatelessWidget {
                 isDarkMode: false,
                 maxLines: 1,
               ),
-            Gap(20.h),
-             AppButton(
-              isLoading: false,
-              onPressed: () {
-                //controller.signUp();
-              },
-              text: 'Sign Up',
-              isDarkMode: false,
-            ),
-              /*
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Checkbox(
-                                  value: _consentChecked,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      _consentChecked = val ?? false;
-                                    });
-                                  },
-                                  activeColor: kAccentPink,
-                                  checkColor: _isDarkMode ? kWhite : null,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: kBlack,
-                                      fontSize: 14,
-                                      height: 1.4,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                          text: AppLocalizations.of(context)!
-                                              .privacyConsent),
-                                      TextSpan(
-                                        text: AppLocalizations.of(context)!
-                                            .personalDataAnd,
-                                        style: const TextStyle(color: kAccentPink),
-                                      ),
-                                      TextSpan(
-                                          text: AppLocalizations.of(context)!
-                                              .andAccept),
-                                      TextSpan(
-                                        text: AppLocalizations.of(context)!
-                                            .privacyPolicy,
-                                        style: const TextStyle(color: kAccentPink),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      
-                          */
-          
-              
-              // LoadingButton(
-              //   isLoading: false,
-              //   onPressed: () {
-              //     controller.signUp();
-              //   },
-              //   text: AppLocalizations.of(context)!.signUp,
-              //   isDarkMode: false,
-              // ),
-              /*
-                          // Quick theme toggle for debugging
-                          if (_isLoading == false)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                                    color: _iconColor,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Current: ${_isDarkMode ? 'Dark' : 'Light'}',
-                                    style: TextStyle(
-                                      color: _hintColor,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            */
-         
-              // Or continue with divider
-              /*
-                          Row(
-                            children: [
-                              Expanded(child: Divider(color: _dividerColor)),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text(
-                                  AppLocalizations.of(context)!.orContinueWith,
-                                  style: TextStyle(color: _hintColor),
-                                ),
-                              ),
-                              Expanded(child: Divider(color: _dividerColor)),
-                            ],
-                          ),
-                          */
-             
-              // Social icons
-              /*
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SocialIcon(
-                                FontAwesomeIcons.facebookF,
-                                onTap: () async {
-                                  await PreferencesService.setOnboardingComplete();
-                                  await PreferencesService.setUserPhone(
-                                      '+971401001881');
-                                  if (!mounted) return;
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                        builder: (_) => const HomeScreen()),
-                                    (Route<dynamic> route) => false,
-                                  );
-                                },
-                                isDarkMode: _isDarkMode,
-                              ),
-                              const SizedBox(width: 16),
-                              SocialIcon(
-                                FontAwesomeIcons.google,
-                                isDarkMode: _isDarkMode,
-                              ),
-                              const SizedBox(width: 16),
-                              SocialIcon(
-                                FontAwesomeIcons.apple,
-                                isDarkMode: _isDarkMode,
-                              ),
-                            ],
-                          ),
-                          */
+              Gap(20.h),
+              AppButton(
+                isLoading: controller.isLoading,
+                onPressed: controller.isLoading
+                    ? null
+                    : () => _handleSignUp(context, controller),
+                text: 'Sign Up',
+                isDarkMode: false,
+              ),
             ],
           ),
         );

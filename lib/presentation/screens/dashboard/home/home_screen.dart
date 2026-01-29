@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:baba_24/core/app_route.dart';
 import 'package:baba_24/data/controller/location_controller.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/car_home_tile.dart';
 import 'package:baba_24/presentation/screens/dashboard/home/widgets/section_header.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/app_button.dart';
+import 'package:baba_24/presentation/screens/onboard/widgets/app_text_field.dart';
 import 'package:baba_24/presentation/screens/onboard/widgets/custom_icon.dart';
 import 'package:baba_24/presentation/widgets/custom_text.dart';
 import 'package:baba_24/utils/app_colors.dart';
@@ -11,9 +14,12 @@ import 'package:baba_24/utils/nav.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -25,11 +31,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final int selectedCategoryIndex = 0;
+  int selectedCategoryIndex = 0;
 
-  late VideoPlayerController _controller;
+  Map<String, dynamic>? currentUser;
+  bool isLoadingUser = true;
+  bool _hasFetchedUser = false;
+
+  late final VideoPlayerController _controller;
   bool isPlaying = false;
   bool isMute = true;
+  // 🔹 Brands
+  List<Map<String, dynamic>> brands = [];
+  bool isLoadingBrands = true;
+  // ================= ELECTRIC CARS =================
+  List<Map<String, dynamic>> electricCars = [];
+  bool isLoadingElectricCars = true;
+
+  // ================= SMART PICKS =================
+  List<Map<String, dynamic>> smartPicksCars = [];
+  bool isLoadingSmartPicks = true;
+
+  // ================= BUSINESS CLASS =================
+  List<Map<String, dynamic>> businessClassCars = [];
+  bool isLoadingBusinessClass = true;
+
+  // ================= FAVORITE STATE =================
+  Set<String> favoriteCarIds = {}; // car IDs favorited by the user
+  bool isUpdatingFavorite = false; // to prevent multiple taps
 
   @override
   void initState() {
@@ -44,6 +72,285 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         setState(() {});
       });
+
+    _loadUserOnce();
+    _fetchBrands();
+    _loadUserFavorites();
+    // == Electric Cars === //
+    _fetchElectricCars();
+    _fetchSmartPicksCars(); // 👈 add
+    _fetchBusinessClassCars();
+  }
+
+  // ================= LOAD USER ONLY ONCE =================
+  Future<void> _loadUserOnce() async {
+    if (_hasFetchedUser) return;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final cachedUser = prefs.getString('current_user');
+    if (cachedUser != null) {
+      currentUser = jsonDecode(cachedUser);
+      isLoadingUser = false;
+      _hasFetchedUser = true;
+      if (mounted) setState(() {});
+      return;
+    }
+
+    await _fetchCurrentUser();
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null) {
+      isLoadingUser = false;
+      _hasFetchedUser = true;
+      if (mounted) setState(() {});
+      return;
+    }
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+      final updatedURL = '$baseURL/auth/current-user';
+
+      final response = await http.get(
+        Uri.parse(updatedURL),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          currentUser = decoded['data'];
+          await prefs.setString('current_user', jsonEncode(currentUser));
+        }
+      }
+    } catch (_) {
+      currentUser = null;
+    } finally {
+      isLoadingUser = false;
+      _hasFetchedUser = true;
+      if (mounted) setState(() {});
+    }
+  }
+
+  // ================= FETCH BRANDS =================
+  Future<void> _fetchBrands() async {
+    setState(() {
+      isLoadingBrands = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+      final response = await http.get(Uri.parse('$baseURL/brands'));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          brands = List<Map<String, dynamic>>.from(decoded['data']);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching brands: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingBrands = false;
+        });
+      }
+    }
+  }
+
+  // ================= FETCH ELECTRIC CARS =================
+  Future<void> _fetchElectricCars() async {
+    setState(() {
+      isLoadingElectricCars = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {
+          'class': 'electric',
+          'limit': '4',
+          'page': '1',
+          'sortBy': 'relevance',
+        },
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          electricCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching electric cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingElectricCars = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchSmartPicksCars() async {
+    setState(() {
+      isLoadingSmartPicks = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {'limit': '4', 'page': '1', 'sortBy': 'price-low'},
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          smartPicksCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching smart picks cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingSmartPicks = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchBusinessClassCars() async {
+    setState(() {
+      isLoadingBusinessClass = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {
+          'class': 'business',
+          'limit': '4',
+          'page': '1',
+          'sortBy': 'relevance',
+        },
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          businessClassCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching business class cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingBusinessClass = false;
+        });
+      }
+    }
+  }
+
+  /// ---------------- TOGGLE FAVORITE ----------------
+  Future<void> toggleFavorite(String carId) async {
+    if (isUpdatingFavorite) return;
+    setState(() => isUpdatingFavorite = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) {
+      debugPrint('No auth token found');
+      setState(() => isUpdatingFavorite = false);
+      return;
+    }
+
+    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    final isFav = favoriteCarIds.contains(carId);
+
+    try {
+      final url = isFav ? '$baseURL/wishlist/$carId' : '$baseURL/wishlist';
+      final response = isFav
+          ? await http.delete(
+              Uri.parse(url),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+          : await http.post(
+              Uri.parse(url),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode({'car_id': carId}),
+            );
+
+      final decoded = jsonDecode(response.body);
+      if ((isFav && decoded['success'] == true) ||
+          (!isFav && decoded['success'] == true)) {
+        setState(() {
+          if (isFav) {
+            favoriteCarIds.remove(carId);
+          } else {
+            favoriteCarIds.add(carId);
+          }
+        });
+      } else {
+        debugPrint('Failed to update favorite: $decoded');
+      }
+    } catch (e) {
+      debugPrint('Favorite toggle error: $e');
+    } finally {
+      setState(() => isUpdatingFavorite = false);
+    }
+  }
+
+  /// ---------------- LOAD USER FAVORITES ----------------
+  Future<void> _loadUserFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) return;
+
+    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse('$baseURL/wishlist'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final decoded = jsonDecode(response.body);
+      if (decoded['success'] == true && decoded['wishlist'] != null) {
+        setState(() {
+          favoriteCarIds = decoded['wishlist']
+              .map<String>((item) => item['car_id'].toString())
+              .toSet();
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load favorites: $e');
+    }
   }
 
   @override
@@ -57,20 +364,16 @@ class _HomeScreenState extends State<HomeScreen> {
       "Coupe",
       "Luxury",
     ];
+
     return Scaffold(
       body: Column(
         children: [
-          HomeHeader(),
+          HomeHeader(currentUser: currentUser, isLoadingUser: isLoadingUser),
           Expanded(
             child: SingleChildScrollView(
-              // padding: EdgeInsets.symmetric(vertical: 15.h),
               child: Column(
                 children: [
                   SizedBox(
-                    // //height: 400.h,
-                    // width: double.infinity,
-                    // // color: Colors.red,
-                    // //height: deviceHeight(context) * 35,
                     child: Column(
                       children: [
                         _controller.value.isInitialized
@@ -210,7 +513,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  /*
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 15.w),
                     child: Row(
@@ -230,13 +532,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.transparent),
+                                borderSide: BorderSide(
+                                  color: Colors.transparent,
+                                ),
                                 // borderSide: BorderSide(color: Colors.red, width: 1),
                               ),
                             ),
                           ),
                         ),
-            
+
                         Container(
                           height: 50.h,
                           width: 50.w,
@@ -249,29 +553,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  */
                   Gap(40.h),
-                  // SectionHeader(text: 'All Brands', onTap: () => null),
-                  // // SingleChildScrollView(
-                  // //   padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
-                  // //   physics: const BouncingScrollPhysics(),
-                  // //   scrollDirection: Axis.horizontal,
-                  // //   child: Row(
-                  // //     spacing: 10,
-                  // //     children: List.generate(categories.length, (index) {
-                  // //       return CategoryTile(
-                  // //         text: categories[index],
-                  // //         isSelected: selectedCategoryIndex == index,
-                  // //       );
-                  // //     }),
-                  // //   ),
-                  // // ),
-
-                  // SectionHeader(text: 'All Brands', onTap: () => null),
+                  SectionHeader(text: 'All Brands', onTap: () => null),
                   /*
                   SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 20.h),
-                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 15.w,
+                      vertical: 20.h,
+                    ),
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       spacing: 10,
@@ -302,15 +591,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   */
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 15.w),
-                    child: Column(
-                      spacing: 10.h,
-                      children: [
-                        MediaQuery.removePadding(
-                          removeTop: true,
-                          context: context,
-                          child: GridView.builder(
+                    child: isLoadingBrands
+                        ? const Center(child: CircularProgressIndicator())
+                        : GridView.builder(
                             shrinkWrap: true,
-                            itemCount: 6,
+                            itemCount: brands.length > 6 ? 6 : brands.length,
                             physics: const NeverScrollableScrollPhysics(),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
@@ -320,51 +605,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisCount: 2,
                                 ),
                             itemBuilder: (context, index) {
-                              return BrandTile(name: 'BMW', img: 'bmw_logo');
+                              final brand = brands[index];
+                              final logoUrl = brand['logo']?['url'] ?? '';
+                              final name = brand['name'] ?? '';
+                              return BrandTile(
+                                name: name,
+                                img: logoUrl,
+                                isNetwork: true,
+                              );
                             },
                           ),
+                  ),
+                  Gap(20.h),
+                  InkWell(
+                    onTap: () => pushNamed(AppRoutes.allBrands),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomText(
+                          text: 'All Brands',
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.kAccentPink,
                         ),
-
-                        InkWell(
-                          onTap: () => pushNamed(AppRoutes.allBrands),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 10.h,
-                              horizontal: 10.w,
-                            ),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15.r),
-                              color: Colors.grey.withValues(alpha: .07),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CustomText(
-                                  text: 'All Brands',
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.kAccentPink,
-                                ),
-                                Icon(
-                                  Icons.navigate_next,
-                                  color: AppColors.kAccentPink,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        Icon(Icons.navigate_next, color: AppColors.kAccentPink),
                       ],
                     ),
-                    // Row(
-                    //   children: [
-                    //     BrandTile(name: 'name', img: 'bmw_logo')
-                    //   ],
-                    // ),
                   ),
                   Gap(20.h),
                   SectionHeader(
                     text: 'Standard Cars',
-                  //  shortDesc: 'Premium Cars at great prices',
+                    //  shortDesc: 'Premium Cars at great prices',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
@@ -372,20 +642,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       horizontal: 15.w,
                       vertical: 20.h,
                     ),
-                    physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (index) {
-                        return CarHomeTile();
-                      }),
-                    ),
+                    child: isLoadingSmartPicks
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: smartPicksCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
 
                   Gap(20.h),
+
+                  // ================= ELECTRIC CARS (UPDATED) =================
                   SectionHeader(
                     text: 'Electric Cars',
-                   // shortDesc: 'Eco-friendly and modern electric vehicles',
+                    // shortDesc: 'Eco-friendly and modern electric vehicles',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
@@ -395,17 +679,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (index) {
-                        return CarHomeTile();
-                      }),
-                    ),
+                    child: isLoadingElectricCars
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: electricCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
                   Gap(20.h),
                   SectionHeader(
                     text: 'Business Class Cars',
-                   // shortDesc: 'Professional vehicles for business and comfort',
+                    // shortDesc: 'Professional vehicles for business and comfort',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
@@ -415,12 +712,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (index) {
-                        return CarHomeTile();
-                      }),
-                    ),
+                    child: isLoadingBusinessClass
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: businessClassCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
 
                   SectionHeader(
@@ -430,22 +740,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     suffixText: 'View All',
                   ),
                   Gap(20),
+
                   CarouselSlider.builder(
                     itemCount: 3,
 
                     itemBuilder: (context, index, _) {
-                      String imageUrl =
-                          "https://oui4bvk5eo1qol4e.public.blob.vercel-storage.com/cars/draft-1763901772909-935-cqjm7e04n/1764062571004-01-image.webp.jpg";
                       return Container(
                         margin: EdgeInsets.symmetric(horizontal: 15.w),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CachedNetworkImage(
-                          imageUrl: imageUrl,
+                          imageUrl:
+                              'https://oui4bvk5eo1qol4e.public.blob.vercel-storage.com/cars/draft-1763901772909-935-cqjm7e04n/1764062571004-01-image.webp.jpg',
                           imageBuilder: (context, imageProvider) {
                             return Container(
-                              width: deviceWidth(context),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 image: DecorationImage(
@@ -496,11 +805,10 @@ class HomeSelector extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         decoration: BoxDecoration(
-          color: AppColors.kGrey.withValues(alpha: .1),
-          border: Border.all(color: AppColors.kGrey.withValues(alpha: .5)),
+          color: AppColors.kGrey.withOpacity(.1),
+          border: Border.all(color: AppColors.kGrey.withOpacity(.5)),
           borderRadius: BorderRadius.circular(10.r),
         ),
-
         child: Row(
           spacing: 10.w,
           children: [
@@ -543,12 +851,11 @@ class CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // alignment: Alignment.center,
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: isSelected
             ? AppColors.kAccentPink
-            : AppColors.kGrey.withValues(alpha: .1),
+            : AppColors.kGrey.withOpacity(.1),
         borderRadius: BorderRadius.circular(15.r),
       ),
       child: CustomText(
@@ -560,34 +867,10 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
-class BrandTile extends StatelessWidget {
-  const BrandTile({super.key, required this.name, required this.img});
-  final String name;
-  final String img;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      //width: deviceWidth(context),
-      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.r),
-        color: Colors.grey.withValues(alpha: .07),
-      ),
-      child: Row(
-        spacing: 10.w,
-        children: [
-          Image.asset('assets/images/$img.png', height: 30.h, width: 30.w),
-          CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
-        ],
-      ),
-    );
-  }
-}
-
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
-
+  final Map<String, dynamic>? currentUser;
+  final bool isLoadingUser;
+  const HomeHeader({super.key, this.currentUser, this.isLoadingUser = true});
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -640,6 +923,43 @@ class HomeHeader extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class BrandTile extends StatelessWidget {
+  const BrandTile({
+    super.key,
+    required this.name,
+    required this.img,
+    this.isNetwork = false,
+  });
+  final String name;
+  final String img;
+  final bool isNetwork;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      //width: deviceWidth(context),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.r),
+        color: Colors.grey.withValues(alpha: .07),
+      ),
+      child: Row(
+        spacing: 10.w,
+        children: [
+          CachedNetworkImage(
+            imageUrl: img,
+            width: 30.w,
+            height: 30.h,
+            fit: BoxFit.cover,
+          ),
+          CustomText(text: name, fontSize: 12.sp, fontWeight: FontWeight.w600),
+        ],
       ),
     );
   }
