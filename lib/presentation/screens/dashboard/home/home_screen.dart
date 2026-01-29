@@ -36,12 +36,32 @@ class _HomeScreenState extends State<HomeScreen> {
   // 🔹 Brands
   List<Map<String, dynamic>> brands = [];
   bool isLoadingBrands = true;
+  // ================= ELECTRIC CARS =================
+  List<Map<String, dynamic>> electricCars = [];
+  bool isLoadingElectricCars = true;
+
+  // ================= SMART PICKS =================
+  List<Map<String, dynamic>> smartPicksCars = [];
+  bool isLoadingSmartPicks = true;
+
+  // ================= BUSINESS CLASS =================
+  List<Map<String, dynamic>> businessClassCars = [];
+  bool isLoadingBusinessClass = true;
+
+  // ================= FAVORITE STATE =================
+  Set<String> favoriteCarIds = {}; // car IDs favorited by the user
+  bool isUpdatingFavorite = false; // to prevent multiple taps
 
   @override
   void initState() {
     super.initState();
     _loadUserOnce();
     _fetchBrands();
+    _loadUserFavorites();
+    // == Electric Cars === //
+    _fetchElectricCars();
+    _fetchSmartPicksCars(); // 👈 add
+    _fetchBusinessClassCars();
   }
 
   // ================= LOAD USER ONLY ONCE =================
@@ -74,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/current-user';
 
       final response = await http.get(
@@ -108,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final response = await http.get(Uri.parse('$baseURL/brands'));
 
       if (response.statusCode == 200) {
@@ -125,6 +145,193 @@ class _HomeScreenState extends State<HomeScreen> {
           isLoadingBrands = false;
         });
       }
+    }
+  }
+
+  // ================= FETCH ELECTRIC CARS =================
+  Future<void> _fetchElectricCars() async {
+    setState(() {
+      isLoadingElectricCars = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {
+          'class': 'electric',
+          'limit': '4',
+          'page': '1',
+          'sortBy': 'relevance',
+        },
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          electricCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching electric cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingElectricCars = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchSmartPicksCars() async {
+    setState(() {
+      isLoadingSmartPicks = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {'limit': '4', 'page': '1', 'sortBy': 'price-low'},
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          smartPicksCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching smart picks cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingSmartPicks = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchBusinessClassCars() async {
+    setState(() {
+      isLoadingBusinessClass = true;
+    });
+
+    try {
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
+
+      final uri = Uri.parse('$baseURL/cars/search').replace(
+        queryParameters: {
+          'class': 'business',
+          'limit': '4',
+          'page': '1',
+          'sortBy': 'relevance',
+        },
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          businessClassCars = List<Map<String, dynamic>>.from(
+            decoded['items'] ?? [],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching business class cars: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingBusinessClass = false;
+        });
+      }
+    }
+  }
+
+  /// ---------------- TOGGLE FAVORITE ----------------
+  Future<void> toggleFavorite(String carId) async {
+    if (isUpdatingFavorite) return;
+    setState(() => isUpdatingFavorite = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) {
+      debugPrint('No auth token found');
+      setState(() => isUpdatingFavorite = false);
+      return;
+    }
+
+    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    final isFav = favoriteCarIds.contains(carId);
+
+    try {
+      final url = isFav ? '$baseURL/wishlist/$carId' : '$baseURL/wishlist';
+      final response = isFav
+          ? await http.delete(
+              Uri.parse(url),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+          : await http.post(
+              Uri.parse(url),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode({'car_id': carId}),
+            );
+
+      final decoded = jsonDecode(response.body);
+      if ((isFav && decoded['success'] == true) ||
+          (!isFav && decoded['success'] == true)) {
+        setState(() {
+          if (isFav) {
+            favoriteCarIds.remove(carId);
+          } else {
+            favoriteCarIds.add(carId);
+          }
+        });
+      } else {
+        debugPrint('Failed to update favorite: $decoded');
+      }
+    } catch (e) {
+      debugPrint('Favorite toggle error: $e');
+    } finally {
+      setState(() => isUpdatingFavorite = false);
+    }
+  }
+
+  /// ---------------- LOAD USER FAVORITES ----------------
+  Future<void> _loadUserFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) return;
+
+    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse('$baseURL/wishlist'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final decoded = jsonDecode(response.body);
+      if (decoded['success'] == true && decoded['wishlist'] != null) {
+        setState(() {
+          favoriteCarIds = decoded['wishlist']
+              .map<String>((item) => item['car_id'].toString())
+              .toSet();
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load favorites: $e');
     }
   }
 
@@ -295,27 +502,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   Gap(20.h),
 
                   // ================= REMAINING SECTIONS UNCHANGED =================
-                  SectionHeader(
-                    text: 'Smart Picks',
-                    shortDesc: 'Premium Cars at great prices',
-                    onTap: () => null,
-                  ),
+                  SectionHeader(text: 'Smart Picks', onTap: () => null),
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
                       vertical: 20.h,
                     ),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (_) => CarHomeTile()),
-                    ),
+                    child: isLoadingSmartPicks
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: smartPicksCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
+
                   Gap(20.h),
 
+                  // ================= ELECTRIC CARS (UPDATED) =================
                   SectionHeader(
                     text: 'Electric Cars',
-                    shortDesc: 'Eco-friendly and modern electric vehicles',
+                    // shortDesc: 'Eco-friendly and modern electric vehicles',
                     onTap: () => null,
                   ),
                   SingleChildScrollView(
@@ -324,28 +544,54 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: 20.h,
                     ),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (_) => CarHomeTile()),
-                    ),
+                    child: isLoadingElectricCars
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: electricCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
                   Gap(20.h),
 
-                  SectionHeader(
-                    text: 'Business Class Cars',
-                    shortDesc: 'Professional vehicles for business and comfort',
-                    onTap: () => null,
-                  ),
+                  SectionHeader(text: 'Business Class Cars', onTap: () => null),
                   SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
                       vertical: 20.h,
                     ),
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 10,
-                      children: List.generate(5, (_) => CarHomeTile()),
-                    ),
+                    child: isLoadingBusinessClass
+                        ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            spacing: 10,
+                            children: businessClassCars.map((car) {
+                              return CarHomeTile(
+                                car: car,
+                                onTap: () => pushNamed(
+                                  AppRoutes.carDetails,
+                                  arguments: car,
+                                ),
+                                isFavorite: favoriteCarIds.contains(car['id']),
+                                onFavoriteTap: () => toggleFavorite(car['id']),
+                              );
+                            }).toList(),
+                          ),
                   ),
 
                   SectionHeader(

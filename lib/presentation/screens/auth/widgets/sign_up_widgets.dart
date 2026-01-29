@@ -43,7 +43,7 @@ class SignUpWidget extends StatelessWidget {
       controller.status = AuthStatus.loading;
       controller.notifyListeners();
 
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/signup';
 
       final url = Uri.parse(updatedURL);

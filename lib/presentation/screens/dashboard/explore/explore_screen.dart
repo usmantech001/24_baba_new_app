@@ -102,8 +102,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
       query['fuel_policy'] = filters['fuelTypes'];
     }
 
-    final baseURL = dotenv.env['PROD_BASE_URL'].toString();
-    final uri = Uri.https(baseURL, '/api/cars/search', query);
+    final baseURL = dotenv.env['DEV_BASE_URL'].toString();
+    final uri = Uri.http(baseURL, '/api/cars/search', query);
     debugPrint('Fetching cars: $uri');
 
     try {

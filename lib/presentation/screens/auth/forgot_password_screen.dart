@@ -39,7 +39,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     try {
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/reset-password';
 
       final url = Uri.parse(updatedURL);

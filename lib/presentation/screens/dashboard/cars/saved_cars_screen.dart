@@ -38,18 +38,40 @@ class _SavedCarsScreenState extends State<SavedCarsScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token') ?? '';
+      String accessToken = prefs.getString('auth_token') ?? '';
+      final refreshToken = prefs.getString('refresh_token') ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
 
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
-      final response = await http.get(
-        Uri.parse('$baseURL/wishlist'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // Helper to make request with token
+      Future<http.Response> makeRequest() async {
+        return await http.get(
+          Uri.parse('$baseURL/wishlist'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'x-refresh-token': refreshToken,
+            'Content-Type': 'application/json',
+          },
+        );
+      }
 
-      final data = jsonDecode(response.body);
+      http.Response response = await makeRequest();
+      var data = jsonDecode(response.body);
+
+      // If 401, retry once (refresh token flow)
+      if (response.statusCode == 401 && refreshToken.isNotEmpty) {
+        // Tokens may be rotated in headers
+        response = await makeRequest();
+        data = jsonDecode(response.body);
+
+        // Update tokens if new ones are sent
+        final newAccess = response.headers['x-access-token'];
+        final newRefresh = response.headers['x-refresh-token'];
+        if (newAccess != null && newRefresh != null) {
+          await prefs.setString('auth_token', newAccess);
+          await prefs.setString('refresh_token', newRefresh);
+          accessToken = newAccess;
+        }
+      }
 
       if (response.statusCode == 200 && data['success'] == true) {
         setState(() {
@@ -71,18 +93,37 @@ class _SavedCarsScreenState extends State<SavedCarsScreen> {
   Future<void> removeFromWishlist(String carId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token') ?? '';
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      String accessToken = prefs.getString('auth_token') ?? '';
+      final refreshToken = prefs.getString('refresh_token') ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
 
-      final response = await http.delete(
-        Uri.parse('$baseURL/wishlist/$carId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      Future<http.Response> makeRequest() async {
+        return await http.delete(
+          Uri.parse('$baseURL/wishlist/$carId'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'x-refresh-token': refreshToken,
+            'Content-Type': 'application/json',
+          },
+        );
+      }
 
-      final data = jsonDecode(response.body);
+      http.Response response = await makeRequest();
+      var data = jsonDecode(response.body);
+
+      // Retry once if 401
+      if (response.statusCode == 401 && refreshToken.isNotEmpty) {
+        response = await makeRequest();
+        data = jsonDecode(response.body);
+
+        final newAccess = response.headers['x-access-token'];
+        final newRefresh = response.headers['x-refresh-token'];
+        if (newAccess != null && newRefresh != null) {
+          await prefs.setString('auth_token', newAccess);
+          await prefs.setString('refresh_token', newRefresh);
+          accessToken = newAccess;
+        }
+      }
 
       if (response.statusCode == 200 && data['success'] == true) {
         setState(() {
@@ -104,7 +145,7 @@ class _SavedCarsScreenState extends State<SavedCarsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kWhite.withValues(alpha: .95),
-      appBar: const CustomAppbar(title: 'Favorites'),
+      appBar: const CustomAppbar(title: 'Favorites', canPop: false),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : wishlist.isEmpty

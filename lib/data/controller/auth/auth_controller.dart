@@ -89,7 +89,7 @@ class AuthController extends ChangeNotifier {
     errorMessage = null;
 
     try {
-      final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+      final baseURL = dotenv.env['DEV_API_URL'] ?? '';
       final updatedURL = '$baseURL/auth/login';
       final response = await http.post(
         Uri.parse(updatedURL),
@@ -124,7 +124,7 @@ class AuthController extends ChangeNotifier {
     setLoading();
     errorMessage = null;
 
-    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    final baseURL = dotenv.env['DEV_API_URL'] ?? '';
     final updatedURL = '$baseURL/auth/signup';
 
     try {
@@ -165,7 +165,7 @@ class AuthController extends ChangeNotifier {
   Future<void> logout() async {
     if (_token == null) return;
 
-    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    final baseURL = dotenv.env['DEV_API_URL'] ?? '';
     final updatedURL = '$baseURL/auth/logout';
 
     try {

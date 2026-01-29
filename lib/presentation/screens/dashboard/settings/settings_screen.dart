@@ -58,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    final baseURL = dotenv.env['PROD_API_URL'] ?? '';
+    final baseURL = dotenv.env['DEV_API_URL'] ?? '';
     final updatedURL = '$baseURL/auth/logout';
 
     try {

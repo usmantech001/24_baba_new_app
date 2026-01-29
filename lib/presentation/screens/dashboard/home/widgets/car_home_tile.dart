@@ -117,8 +117,10 @@ class CarHomeTile extends StatelessWidget {
             Positioned(
               right: 10,
               top: 10,
-              child: InkWell(
-                onTap: onFavoriteTap,
+              child: GestureDetector(
+                behavior: HitTestBehavior
+                    .translucent, // ensures tap doesn't pass to parent
+                onTap: onFavoriteTap, // calls your toggleFavorite
                 child: CustomIcon(
                   iconData: isFavorite
                       ? Icons.favorite
